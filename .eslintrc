@@ -1,15 +1,23 @@
 {
     "root": true,
     "parser": "@typescript-eslint/parser",
-    "plugins": [
-      "@typescript-eslint"
-    ],
+    "plugins": ["@typescript-eslint", "prettier"],
     "extends": [
       "eslint:recommended",
       "plugin:@typescript-eslint/eslint-recommended",
-      "plugin:@typescript-eslint/recommended"
+      "plugin:@typescript-eslint/recommended",
+      "airbnb-base",
+      "airbnb-typescript/base",
+      "plugin:prettier/recommended",
+      "prettier"
     ],
+    "parserOptions": {
+      "project": "./tsconfig.json"
+    },
     "rules": {
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/indent": ["error", 2],
+      "@typescript-eslint/no-explicit-any": "error",
       "@typescript-eslint/ban-types": [
         "error",
         {
@@ -17,6 +25,19 @@
                 "Function": false
             }
         }
-      ]
+      ],
+      "no-undef": "off",
+      "no-console": "off",
+      "max-len": [
+        "error",
+        {
+          "code": 140,
+          "ignoreComments": true,
+          "ignoreUrls": true,
+          "ignoreStrings": true,
+          "ignoreTemplateLiterals": true
+        }
+      ],
+      "prettier/prettier": "error"
     }
 }
