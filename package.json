@@ -1,4 +1,5 @@
 {
+  "version": "0.1.0",
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "5.41.0",
     "@typescript-eslint/parser": "5.41.0",
@@ -12,6 +13,7 @@
   },
   "scripts": {
     "lint": "eslint . --ext .ts",
-    "lint-fix": "eslint . --ext .ts --fix"
+    "lint-fix": "eslint . --ext .ts --fix",
+    "build": "npx tsc src/mraid.ts src/mraidapi.ts --outFile build/criteo-mraid.js"
   }
 }
