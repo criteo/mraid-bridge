@@ -53,3 +53,5 @@ const mraid: MRAID = {
     console.log(`open(), url -> ${url}`);
   },
 };
+
+export default mraid;
