@@ -44,7 +44,7 @@ val generateJavadocJar by tasks.registering(Jar::class) {
 
 val buildJs by tasks.registering(NpmTask::class) {
     dependsOn("npmInstall")
-    args.set(listOf("run", "build"))
+    args.set(listOf("run", "buildRelease"))
 }
 
 val copyMraidFileIntoAssetsFolder by tasks.registering(Copy::class) {
