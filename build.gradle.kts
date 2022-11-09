@@ -11,6 +11,9 @@ plugins {
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
 }
 
+group = "com.criteo.publisher"
+version = getProjectVersion()
+
 /**
  * Generates file which is packaged into dummy sources.jar and javadoc.jar
  * Sonatype requires those two files to be included when publishing artifact
@@ -67,17 +70,16 @@ publishing {
             artifact(generateSourcesJar)
             artifact(generateJavadocJar)
 
-            groupId = "com.criteo.publisher"
-            artifactId = "mraid-bridge"
+            groupId = project.group.toString()
+            // It is directory name by default. "mraid-bridge" in our case
+            artifactId = project.name.toString()
 
-            val artifactVersion = getVersionFromProjectJson()
-            version = if (isSnapshot()) "${artifactVersion}-SNAPSHOT" else artifactVersion
+            version = project.version.toString()
 
             pom {
-                name.set("com.criteo.publisher:mraid-bridge")
+                name.set("${project.group.toString()}:${project.name.toString()}")
                 url.set("https://github.com/criteo/mraid-bridge")
                 description.set("Bridge between an Ad and WebView based on MRAID spec")
-                packaging = "jar"
 
                 licenses {
                     license {
@@ -119,7 +121,7 @@ signing {
 nexusPublishing {
     repositories {
         sonatype {
-            username.set("criteo-oss")
+            username.set(System.getenv("SONATYPE_USERNAME"))
             password.set(System.getenv("SONATYPE_PASSWORD"))
         }
     }
@@ -142,4 +144,9 @@ fun getVersionFromProjectJson(): String {
     } catch (t: Throwable) {
         throw GradleException("Error getting version from project.json", t)
     }
+}
+
+fun getProjectVersion(): String {
+    val artifactVersion = getVersionFromProjectJson()
+    return if (isSnapshot()) "${artifactVersion}-SNAPSHOT" else artifactVersion
 }
