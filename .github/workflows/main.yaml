@@ -29,7 +29,7 @@ jobs:
   publish-snapshot-to-sonatype:
     name: Publish SNAPSHOT artifact to Sonatype
     runs-on: ubuntu-latest
-    if: github.event_name == 'push' # Only deploy on merge
+    if: github.ref == 'refs/heads/main'
 
     needs: 
       - lint
@@ -55,11 +55,5 @@ jobs:
           MAVEN_SECRING_GPG_BASE64: ${{ secrets.MAVEN_SECRING_GPG_BASE64 }}
           MAVEN_SECRING_PASSWORD: ${{ secrets.MAVEN_SECRING_PASSWORD }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: ./gradlew publishToMavenLocal
-#        run: ./gradlew publishToSonatype closeSonatypeStagingRepository
-
-      - name: Archive local maven repo
-        uses: actions/upload-artifact@v3
-        with:
-          name: local-maven-repo
-          path: ~/.m2
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
