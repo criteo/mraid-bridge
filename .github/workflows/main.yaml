@@ -51,9 +51,10 @@ jobs:
           java-version: '11'
       
       - name: Deploy artifact
-        env:           
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_DEV_WEBHOOK }}
           MAVEN_SECRING_GPG_BASE64: ${{ secrets.MAVEN_SECRING_GPG_BASE64 }}
           MAVEN_SECRING_PASSWORD: ${{ secrets.MAVEN_SECRING_PASSWORD }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
-        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository
+        run: ./gradlew publishToSonatype closeAndReleaseSonatypeStagingRepository sendMraidDeployedToSonatypeMessageToSlack

@@ -2,6 +2,7 @@ import org.gradle.jvm.tasks.Jar
 import com.github.gradle.node.npm.task.NpmTask
 import groovy.json.JsonSlurper
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException
+import com.slack.api.model.block.composition.BlockCompositions.markdownText
 
 plugins {
     `java-library`
@@ -9,6 +10,7 @@ plugins {
     signing
     id("com.github.node-gradle.node") version "3.5.0"
     id("io.github.gradle-nexus.publish-plugin") version "1.1.0"
+    id("fr.pturpin.slack-publish") version "0.2.0"
 }
 
 group = "com.criteo.publisher"
@@ -127,6 +129,17 @@ nexusPublishing {
     }
 }
 
+afterEvaluate {
+    publishing {
+        repositories.withType<MavenArtifactRepository> {
+            val repository = this
+            publications.withType<MavenPublication> {
+                addSlackDeploymentMessage(this, repository)
+            }
+        }
+    }
+}
+
 fun Project.isSnapshot(): Boolean {
     return properties["isRelease"] != "true"
 }
@@ -143,6 +156,42 @@ fun getVersionFromProjectJson(): String {
         return parsedVersion
     } catch (t: Throwable) {
         throw GradleException("Error getting version from project.json", t)
+    }
+}
+
+fun Project.addSlackDeploymentMessage(
+    publication: MavenPublication,
+    repository: MavenArtifactRepository
+) {
+    val webHookUrl = System.getenv("SLACK_WEBHOOK") ?: return
+
+    slack {
+        messages {
+            register("${publication.name}DeployedTo${repository.name.capitalize()}") {
+                webHook.set(webHookUrl)
+
+                publication {
+                    publicName.set("MRAID Bridge")
+                    publication(publication)
+                    repository(repository)
+                }
+
+                if (isSnapshot()) {
+                    git()
+                }
+
+                changelog {
+                    version.set(getVersionFromProjectJson())
+                    versionLinesStartWith("# Version")
+
+                    format {
+                        section {
+                            text = markdownText("```${changelog.get()}```")
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 
