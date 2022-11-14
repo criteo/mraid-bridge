@@ -17,7 +17,7 @@
   },
   "scripts": {
     "lint": "eslint . --ext .ts",
-    "lint-fix": "eslint . --ext .ts --fix",
+    "lintFix": "eslint . --ext .ts --fix",
     "build": "npx tsc",
     "buildRelease": "npm run build && npm run minify",
     "minify": "uglifyjs build/**.js -c --output build/criteo-mraid.js",
