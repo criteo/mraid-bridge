@@ -55,3 +55,6 @@ const mraid: MRAID = {
 };
 
 export default mraid;
+// Do not remove. Used to make reference to mraid to avoid deletion of mraid object during exports stripping.
+// Will be removed by UglifyJs during release build.
+console.log(mraid);
