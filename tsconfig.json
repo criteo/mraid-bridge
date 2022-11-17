@@ -1,7 +1,7 @@
 {
   "compilerOptions": {
     "target": "ES5",
-    "module": "CommonJS",
+    "module": "ES2015",
     "outDir": "build",
     "esModuleInterop": true,
     "forceConsistentCasingInFileNames": true,
