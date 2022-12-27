@@ -1,4 +1,4 @@
-interface MRAID {
+export interface MRAID {
   /**
    * @returns MRAID specification version that SDK is certified against.
    *
@@ -111,7 +111,7 @@ interface MRAID {
   open(url: URL): void;
 }
 
-class ExpandProperties {
+export class ExpandProperties {
   /**
    * Width of creative in pixels, default is full screen width
    */
