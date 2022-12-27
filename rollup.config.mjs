@@ -1,12 +1,12 @@
-import stripExports from 'rollup-plugin-strip-exports'
+import typescript from 'rollup-plugin-typescript2';
 
 export default {
-	input: 'build/mraid.js',
-    output: {
-        file: 'build/mraid.js'
-      },
-
-	plugins: [
-        stripExports(),
-	]
+	input: 'src/main.ts',
+  output: {
+      file: "build/criteo-mraid.js",
+      format: "iife",
+    },
+  plugins: [
+    typescript()
+  ]
 }

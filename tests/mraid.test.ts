@@ -1,5 +1,11 @@
-import mraid from "../src/mraid";
+import { MRAIDImplementation } from "../src/mraid";
 
-test("getVersion should return 1", () => {
+let mraid: MRAIDImplementation;
+
+beforeEach(() => {
+  mraid = MRAIDImplementation.create();
+});
+
+test("getVersion should return 1.0", () => {
   expect(mraid.getVersion()).toBe("1.0");
 });
