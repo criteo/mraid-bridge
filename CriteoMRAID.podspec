@@ -1,5 +1,5 @@
 #
-# Be sure to run `pod lib lint CRMRAID.podspec' to ensure this is a
+# Be sure to run `pod lib lint CriteoMRAID.podspec' to ensure this is a
 # valid spec before submitting.
 #
 # Any lines starting with a # are optional, but their use is encouraged
@@ -7,7 +7,7 @@
 #
 
 Pod::Spec.new do |s|
-  s.name             = 'CRMRAID'
+  s.name             = 'CriteoMRAID'
   s.version          = '1.0.0'
   s.summary          = 'MRAID resource pod'
   s.description      = <<-DESC
