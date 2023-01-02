@@ -19,9 +19,9 @@ MRAID js file host.
   s.author           = { "Criteo" => "opensource@criteo.com" }
   s.source           = {
     :git => 'https://github.com/criteo/mraid-bridge.git',
-    :branch => 'ios-cocoapod-setup'
+    :tag => s.version
   }
-  s.ios.deployment_target = '10.0'
+  s.ios.deployment_target = '9.0'
 
   s.resource_bundles = {
     'Resource' => ['src/*.ts']
