@@ -1,12 +1,14 @@
+import { EventsCoordinator } from "./events";
 import { MRAIDImplementation } from "./mraid";
-import { MRAID } from "./mraidapi";
+import { MRAIDApi } from "./mraidapi";
+import { SDKApi } from "./sdkapi";
 
 export {};
 
 declare global {
   interface Window {
-    mraid: MRAID;
+    mraid: MRAIDApi & SDKApi;
   }
 }
 
-window.mraid = MRAIDImplementation.create();
+window.mraid = window.mraid ?? new MRAIDImplementation(new EventsCoordinator());

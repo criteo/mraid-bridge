@@ -1,28 +1,45 @@
-import { MRAID, ExpandProperties } from "./mraidapi";
+import { MRAIDApi, ExpandProperties } from "./mraidapi";
+import { EventsCoordinator, MraidEvent, MraidEventListener } from "./events";
+import { SDKApi } from "./sdkapi";
+import { MraidState } from "./state";
+import { SafeString } from "./utils";
 
-export class MRAIDImplementation implements MRAID {
-  static create(): MRAIDImplementation {
-    return new MRAIDImplementation();
+export class MRAIDImplementation implements MRAIDApi, SDKApi {
+  private eventsCoordinator: EventsCoordinator;
+
+  private currentState = MraidState.Loading;
+
+  constructor(eventsCoordinator: EventsCoordinator) {
+    this.eventsCoordinator = eventsCoordinator;
   }
+
+  // #region MRAID Api
 
   getVersion(): string {
     return "1.0";
   }
 
-  addEventListener(event: string, listener: Function) {
-    console.log(
-      `addEventListener(), event -> ${event}, listener -> ${listener}`
-    );
+  addEventListener(event: MraidEvent, listener: MraidEventListener) {
+    try {
+      this.eventsCoordinator.addEventListener(event, listener);
+    } catch (e) {
+      // log error
+    }
   }
 
-  removeEventListener(event: string, listener: Function) {
-    console.log(
-      `removeEventListener(), event -> ${event}, listener -> ${listener}`
-    );
+  removeEventListener(
+    event: MraidEvent,
+    listener: MraidEventListener | null | undefined
+  ) {
+    try {
+      this.eventsCoordinator.removeEventListener(event, listener);
+    } catch (e) {
+      // log error
+    }
   }
 
-  getState(): string {
-    return "loading";
+  getState(): MraidState {
+    return this.currentState;
   }
 
   getPlacementType(): string {
@@ -57,5 +74,27 @@ export class MRAIDImplementation implements MRAID {
 
   open(url: URL) {
     console.log(`open(), url -> ${url}`);
+  }
+
+  // #endregion
+
+  // #region SDKApi
+
+  notifyReady() {
+    if (this.currentState === MraidState.Loading) {
+      this.updateState(MraidState.Default);
+      this.eventsCoordinator.fireReadyEvent();
+    }
+  }
+
+  notifyError(message: string, action: SafeString): void {
+    this.eventsCoordinator.fireErrorEvent(message, action);
+  }
+
+  // #endregion
+
+  private updateState(newState: MraidState) {
+    this.currentState = newState;
+    this.eventsCoordinator.fireStateChangeEvent(newState);
   }
 }
