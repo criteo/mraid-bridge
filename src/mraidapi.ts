@@ -1,4 +1,7 @@
-interface MRAID {
+import { MraidEvent, MraidEventListener } from "./events";
+import { MraidState } from "./state";
+
+export interface MRAIDApi {
   /**
    * @returns MRAID specification version that SDK is certified against.
    *
@@ -14,7 +17,7 @@ interface MRAID {
    *
    * Since: 1.0
    */
-  addEventListener(event: string, listener: Function): void;
+  addEventListener(event: MraidEvent, listener: MraidEventListener): void;
 
   /**
    * Unsubscribe a specific handler method from a specific event.
@@ -25,7 +28,10 @@ interface MRAID {
    *
    * Since: 1.0
    */
-  removeEventListener(event: string, listener: Function): void;
+  removeEventListener(
+    event: MraidEvent,
+    listener: MraidEventListener | null | undefined
+  ): void;
 
   /**
    * @returns Current state of the ad container. One of -> "loading", "default", "expanded", "hidden".
@@ -33,7 +39,7 @@ interface MRAID {
    *
    * Since: 1.0
    */
-  getState(): string;
+  getState(): MraidState;
 
   /**
    *
@@ -111,7 +117,7 @@ interface MRAID {
   open(url: URL): void;
 }
 
-class ExpandProperties {
+export class ExpandProperties {
   /**
    * Width of creative in pixels, default is full screen width
    */
