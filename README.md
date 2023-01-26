@@ -6,7 +6,7 @@ Project for sharing MRAID.js file between [iOS](https://github.com/criteo/ios-pu
 # Development
 Perform following steps to setup for development:
 1. Clone project
-2. Install Node via [installer](https://nodejs.org/en/download/) or [packageManager](https://nodejs.org/en/download/).
+2. Install Node via [installer](https://nodejs.org/en/download/) or [packageManager](https://nodejs.org/en/download/package-manager/).
 3. From root of the project run `npm install`
 
 The following commands are available:
