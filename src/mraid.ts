@@ -3,11 +3,16 @@ import { EventsCoordinator, MraidEvent, MraidEventListener } from "./events";
 import { SDKApi } from "./sdkapi";
 import { MraidState } from "./state";
 import { SafeString } from "./utils";
+import { MraidPlacementType } from "./placement";
 
 export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private eventsCoordinator: EventsCoordinator;
 
   private currentState = MraidState.Loading;
+
+  private placementType = MraidPlacementType.Unknown;
+
+  private isCurrentlyViewable = false;
 
   constructor(eventsCoordinator: EventsCoordinator) {
     this.eventsCoordinator = eventsCoordinator;
@@ -42,12 +47,12 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     return this.currentState;
   }
 
-  getPlacementType(): string {
-    return "inline";
+  getPlacementType(): MraidPlacementType {
+    return this.placementType;
   }
 
   isViewable(): boolean {
-    return true;
+    return this.isCurrentlyViewable;
   }
 
   expand(url?: URL) {
@@ -80,15 +85,20 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
 
   // #region SDKApi
 
-  notifyReady() {
-    if (this.currentState === MraidState.Loading) {
-      this.updateState(MraidState.Default);
-      this.eventsCoordinator.fireReadyEvent();
-    }
+  notifyReady(placementType: MraidPlacementType) {
+    this.placementType = placementType;
+    this.setReady();
   }
 
-  notifyError(message: string, action: SafeString): void {
+  notifyError(message: string, action: SafeString) {
     this.eventsCoordinator.fireErrorEvent(message, action);
+  }
+
+  setIsViewable(isViewable: boolean) {
+    if (this.isCurrentlyViewable !== isViewable) {
+      this.isCurrentlyViewable = isViewable;
+      this.eventsCoordinator.fireViewableChangeEvent(isViewable);
+    }
   }
 
   // #endregion
@@ -96,5 +106,12 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private updateState(newState: MraidState) {
     this.currentState = newState;
     this.eventsCoordinator.fireStateChangeEvent(newState);
+  }
+
+  private setReady() {
+    if (this.currentState === MraidState.Loading) {
+      this.updateState(MraidState.Default);
+      this.eventsCoordinator.fireReadyEvent();
+    }
   }
 }
