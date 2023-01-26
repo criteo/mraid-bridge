@@ -1,3 +1,4 @@
+import { MraidPlacementType } from "./placement";
 import { SafeString } from "./utils";
 
 /**
@@ -6,11 +7,22 @@ import { SafeString } from "./utils";
 export interface SDKApi {
   /**
    * Notify mraid object that script has been loaded into container
+   *
+   * @param placementType - Ad placement inside app
    */
-  notifyReady(): void;
+  notifyReady(placementType: MraidPlacementType): void;
 
   /**
    * Notify mraid object about SDK error
    */
   notifyError(message: string, action: SafeString): void;
+
+  /**
+   * Report mraid object about currentViewability/viewabilityChange
+   *
+   * @param isViewable
+   * "true" -> ad is currently visible
+   * "false" -> ad is off screen
+   */
+  setIsViewable(isViewable: boolean): void;
 }
