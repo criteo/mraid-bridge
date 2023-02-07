@@ -1,0 +1,29 @@
+name: Mraid
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+
+  buildRelease:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: npm ci
+      
+      - name: Generate mraid js file
+        run: npm run buildRelease
+
+      - name: Submit mraid js file to repo
+        uses: EndBug/add-and-commit@v9
+        with:
+          default_author: github_actions
+          message: 'Update mraid js file'
+          add: 'build/criteo-mraid.js'
+          push: origin main --set-upstream --force
