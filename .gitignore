@@ -139,11 +139,10 @@ dist
 .svelte-kit
 
 # Build folder
-/build
+/build/*
 
 ### Gradle ###
 .gradle
-**/build/
 !src/**/build/
 
 # Ignore Gradle GUI config
@@ -162,3 +161,5 @@ local.properties
 
 # Idea
 .idea
+
+!/build/criteo-mraid.js
