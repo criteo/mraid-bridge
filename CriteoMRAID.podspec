@@ -24,6 +24,6 @@ MRAID js file host.
   s.ios.deployment_target = '9.0'
 
   s.resource_bundles = {
-    'CriteoMRAIDResource' => ['src/*.ts']
+    'CriteoMRAIDResource' => ['build/criteo-mraid.js']
   }
 end
