@@ -1,0 +1,31 @@
+name: Mraid
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+
+  buildRelease:
+    if: ${{ github.ref == 'refs/heads/main' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: npm ci
+      
+      - name: Generate mraid js file
+        run: npm run buildRelease
+
+      - name: Submit a commit with criteo-mraid.js
+        uses: EndBug/add-and-commit@v9
+        with:
+          default_author: 'github_actions'
+          message: 'Upload a new version of criteo-mraid.js file'
+          add: 'build/criteo-mraid.js'
+          push: true
+          repo-token: ${{ secrets.GITHUB_TOKEN }}
