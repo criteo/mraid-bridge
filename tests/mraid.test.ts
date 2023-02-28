@@ -3,13 +3,17 @@ import { MRAIDImplementation } from "../src/mraid";
 import { EventsCoordinator, MraidEvent } from "../src/events";
 import { MraidState } from "../src/state";
 import { MraidPlacementType } from "../src/placement";
+import { SdkInteractor } from "../src/mraidbridge/sdkinteractor";
 
 let mraid: MRAIDImplementation;
 let eventsCoordinator: EventsCoordinator;
 
 beforeEach(() => {
   eventsCoordinator = mock(EventsCoordinator);
-  mraid = new MRAIDImplementation(instance(eventsCoordinator));
+  mraid = new MRAIDImplementation(
+    instance(eventsCoordinator),
+    instance(mock(SdkInteractor))
+  );
 });
 
 test("when create mraid object given no interactions should have loading state", () => {
