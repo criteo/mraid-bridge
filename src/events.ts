@@ -1,5 +1,7 @@
 import { MraidState } from "./state";
 import { isFunction, SafeString } from "./utils";
+import { LogLevel } from "./mraidbridge/loglevel";
+import { SdkInteractor } from "./mraidbridge/sdkinteractor";
 
 export enum MraidEvent {
   Ready = "ready",
@@ -27,10 +29,19 @@ export class EventsCoordinator {
     Object.values(MraidEvent).map((e) => [e, new Set()])
   );
 
+  private sdkInteractor: SdkInteractor;
+
+  constructor(sdkInteractor: SdkInteractor) {
+    this.sdkInteractor = sdkInteractor;
+  }
+
   addEventListener(event: MraidEvent, listener: MraidEventListener) {
     // By MRAID spec listener can be any function
     if (!this.isCorrectEvent(event) || !isFunction(listener)) {
-      // log error
+      this.sdkInteractor.log(
+        LogLevel.Error,
+        `Incorrect parameter type when addEventListener. event = ${event}, listenerType = ${typeof listener}`
+      );
       return;
     }
 
@@ -44,7 +55,10 @@ export class EventsCoordinator {
     listener: MraidEventListener | null | undefined
   ) {
     if (!this.isCorrectEvent(event) || (listener && !isFunction(listener))) {
-      // log error
+      this.sdkInteractor.log(
+        LogLevel.Error,
+        `Incorrect parameter type when removeEventListener. event = ${event}, listenerType = ${typeof listener}`
+      );
       return;
     }
 

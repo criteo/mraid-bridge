@@ -2,5 +2,11 @@
 module.exports = {
   preset: 'ts-jest',
   testEnvironment: 'node',
-  modulePaths: ["node_modules", "<rootDir>/src"]
+  modulePaths: ["<rootDir>/node_modules", "<rootDir>/src"],
+  globals: {
+    window: {},
+  },
+  moduleNameMapper: {
+    '^(\\.{1,2}/.*)\\.js$': '$1',
+  }
 };

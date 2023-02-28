@@ -1,12 +1,16 @@
-import { MRAIDApi, ExpandProperties } from "./mraidapi";
+import { ExpandProperties, MRAIDApi } from "./mraidapi";
 import { EventsCoordinator, MraidEvent, MraidEventListener } from "./events";
 import { SDKApi } from "./sdkapi";
 import { MraidState } from "./state";
 import { SafeString } from "./utils";
 import { MraidPlacementType } from "./placement";
+import { LogLevel } from "./mraidbridge/loglevel";
+import { SdkInteractor } from "./mraidbridge/sdkinteractor";
 
 export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private eventsCoordinator: EventsCoordinator;
+
+  private sdkInteractor: SdkInteractor;
 
   private currentState = MraidState.Loading;
 
@@ -14,8 +18,12 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
 
   private isCurrentlyViewable = false;
 
-  constructor(eventsCoordinator: EventsCoordinator) {
+  constructor(
+    eventsCoordinator: EventsCoordinator,
+    sdkInteractor: SdkInteractor
+  ) {
     this.eventsCoordinator = eventsCoordinator;
+    this.sdkInteractor = sdkInteractor;
   }
 
   // #region MRAID Api
@@ -28,7 +36,10 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     try {
       this.eventsCoordinator.addEventListener(event, listener);
     } catch (e) {
-      // log error
+      this.sdkInteractor.log(
+        LogLevel.Error,
+        `Error when addEventListener, event = ${event}, listenerType = ${typeof listener}`
+      );
     }
   }
 
@@ -39,7 +50,10 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     try {
       this.eventsCoordinator.removeEventListener(event, listener);
     } catch (e) {
-      // log error
+      this.sdkInteractor.log(
+        LogLevel.Error,
+        `Error when removeEventListener, event = ${event}, listenerType = ${typeof listener}`
+      );
     }
   }
 
@@ -86,6 +100,11 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   // #region SDKApi
 
   notifyReady(placementType: MraidPlacementType) {
+    this.sdkInteractor.log(
+      LogLevel.Debug,
+      `notifyReady(), placementType=${placementType}`,
+      null
+    );
     this.placementType = placementType;
     this.setReady();
   }
@@ -95,6 +114,11 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   }
 
   setIsViewable(isViewable: boolean) {
+    this.sdkInteractor.log(
+      LogLevel.Debug,
+      `setIsViewable(), isViewable=${isViewable}`,
+      null
+    );
     if (this.isCurrentlyViewable !== isViewable) {
       this.isCurrentlyViewable = isViewable;
       this.eventsCoordinator.fireViewableChangeEvent(isViewable);

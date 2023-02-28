@@ -1,11 +1,13 @@
+import { instance, mock } from "ts-mockito";
 import { EventsCoordinator, MraidEvent } from "../src/events";
 import { MraidState } from "../src/state";
 import { SafeString } from "../src/utils";
+import { SdkInteractor } from "../src/mraidbridge/sdkinteractor";
 
 let eventsCoordinator: EventsCoordinator;
 
 beforeEach(() => {
-  eventsCoordinator = new EventsCoordinator();
+  eventsCoordinator = new EventsCoordinator(instance(mock(SdkInteractor)));
 });
 
 describe("when addEventListener", () => {
