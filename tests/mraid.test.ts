@@ -1,18 +1,21 @@
-import { mock, instance, verify, anything } from "ts-mockito";
+import { anyString, anything, instance, mock, verify } from "ts-mockito";
 import { MRAIDImplementation } from "../src/mraid";
 import { EventsCoordinator, MraidEvent } from "../src/events";
 import { MraidState } from "../src/state";
 import { MraidPlacementType } from "../src/placement";
 import { SdkInteractor } from "../src/mraidbridge/sdkinteractor";
+import { LogLevel } from "../src/mraidbridge/loglevel";
 
 let mraid: MRAIDImplementation;
 let eventsCoordinator: EventsCoordinator;
+let sdkInteractor: SdkInteractor;
 
 beforeEach(() => {
   eventsCoordinator = mock(EventsCoordinator);
+  sdkInteractor = mock(SdkInteractor);
   mraid = new MRAIDImplementation(
     instance(eventsCoordinator),
-    instance(mock(SdkInteractor))
+    instance(sdkInteractor)
   );
 });
 
@@ -106,4 +109,27 @@ test("given isViewable = false when setIsViewable to true should fireViewableCha
 test("given isViewable = false when setIsViewable to false should not fireViewableChangeEvent on EventsCoordinator", () => {
   mraid.setIsViewable(false);
   verify(eventsCoordinator.fireViewableChangeEvent(anything())).never();
+});
+
+describe("when open", () => {
+  test("with valid string then should delegate to SdkInteractor.open", () => {
+    const url = "https://criteo.com";
+
+    mraid.open(url);
+
+    verify(sdkInteractor.open(url)).once();
+  });
+
+  test("with empty string then should delegate error to SdkInteractor.log", () => {
+    mraid.open("");
+    verify(sdkInteractor.log(LogLevel.Error, anyString(), anyString()));
+  });
+
+  it.each([null, undefined, 1, true, () => {}, new Set()])(
+    "with %p then should delegate error to SdkInteractor.log",
+    (invalidString) => {
+      mraid.open(invalidString);
+      verify(sdkInteractor.log(LogLevel.Error, anyString(), anyString()));
+    }
+  );
 });

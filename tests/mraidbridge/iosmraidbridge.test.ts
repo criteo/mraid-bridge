@@ -6,6 +6,7 @@ import {
   LogIosMessage,
   Webkit,
   MessageHandlers,
+  OpenIosMessage,
 } from "../../src/mraidbridge/iosmraidbridge";
 
 let iosMraidBridge: IosMraidBridge;
@@ -40,6 +41,20 @@ test("when call log should delegate to criteoMraidBridge on window", () => {
     logLevel,
     message,
     logId,
+  };
+
+  const capturedMessage = capture(iosMessageHandler.postMessage).last()[0];
+  expect(capturedMessage).toStrictEqual(expectedMessage);
+});
+
+test("when call open should delegate to criteoMraidBridge on window", () => {
+  const url = "https://www.criteo.com/";
+
+  iosMraidBridge.open(url);
+
+  const expectedMessage: OpenIosMessage = {
+    action: "open",
+    url,
   };
 
   const capturedMessage = capture(iosMessageHandler.postMessage).last()[0];

@@ -35,6 +35,10 @@ export declare interface LogIosMessage extends IosMessage {
   logId: string | null;
 }
 
+export declare interface OpenIosMessage extends IosMessage {
+  url: string;
+}
+
 // #endregion
 
 export class IosMraidBridge implements MraidBridge {
@@ -46,6 +50,14 @@ export class IosMraidBridge implements MraidBridge {
       logId,
     };
     this.postMessage(logMessage);
+  }
+
+  open(url: string): void {
+    const openMessage: OpenIosMessage = {
+      action: "open",
+      url,
+    };
+    this.postMessage(openMessage);
   }
 
   private postMessage(message: IosMessage) {

@@ -24,10 +24,15 @@ declare global {
  */
 export declare interface CriteoInterface {
   log(logLevel: LogLevel, message: string, logId: string | null): void;
+  open(url: string): void;
 }
 
 export class AndroidMraidBridge implements MraidBridge {
   log(logLevel: LogLevel, message: string, logId: string | null): void {
     window?.criteoMraidBridge?.log(logLevel, message, logId);
+  }
+
+  open(url: string): void {
+    window?.criteoMraidBridge?.open(url);
   }
 }
