@@ -23,3 +23,11 @@ test("when call log should delegate to criteoMraidBridge on window", () => {
 
   verify(androidBridge.log(logLevel, message, logId)).once();
 });
+
+test("when call open should delegate to criteoMraidBridge on window", () => {
+  const url = "https://www.criteo.com/";
+
+  androidMraidBridge.open(url);
+
+  verify(androidBridge.open(url)).once();
+});

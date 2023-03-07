@@ -17,6 +17,12 @@ export class SdkInteractor {
     });
   }
 
+  open(url: string) {
+    this.callForAll((bridge) => {
+      bridge.open(url);
+    });
+  }
+
   private callForAll(lambda: (mraidBridge: MraidBridge) => void) {
     this.bridges.forEach((bridge) => {
       lambda(bridge);

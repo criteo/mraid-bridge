@@ -2,7 +2,7 @@ import { ExpandProperties, MRAIDApi } from "./mraidapi";
 import { EventsCoordinator, MraidEvent, MraidEventListener } from "./events";
 import { SDKApi } from "./sdkapi";
 import { MraidState } from "./state";
-import { SafeString } from "./utils";
+import { Anything, SafeString } from "./utils";
 import { MraidPlacementType } from "./placement";
 import { LogLevel } from "./mraidbridge/loglevel";
 import { SdkInteractor } from "./mraidbridge/sdkinteractor";
@@ -91,8 +91,22 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     console.log(`useCustomClose(), useCustomClose -> ${useCustomClose}`);
   }
 
-  open(url: URL) {
-    console.log(`open(), url -> ${url}`);
+  open(url: string | Anything) {
+    if (url) {
+      if (typeof url === "string") {
+        this.sdkInteractor.open(url);
+      } else {
+        this.sdkInteractor.log(
+          LogLevel.Error,
+          "Error when open(), url is not a string"
+        );
+      }
+    } else {
+      this.sdkInteractor.log(
+        LogLevel.Error,
+        "Error when open(), url is null, empty or undefined"
+      );
+    }
   }
 
   // #endregion

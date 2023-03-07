@@ -114,7 +114,7 @@ export interface MRAIDApi {
    *
    * Since: 1.0
    */
-  open(url: URL): void;
+  open(url: string | Anything): void;
 }
 
 export class ExpandProperties {

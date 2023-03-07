@@ -24,3 +24,11 @@ test("when call log should delegate to every MraidBridge object", () => {
     verify(bridge.log(logLevel, message, logId)).once()
   );
 });
+
+test("when call open should delegate to every MraidBridge object", () => {
+  const url = "https://www.criteo.com/";
+
+  sdkInteractor.open(url);
+
+  mraidBridges.forEach((bridge) => verify(bridge.open(url)).once());
+});
