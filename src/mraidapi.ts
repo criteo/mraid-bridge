@@ -1,5 +1,6 @@
 import { MraidEvent, MraidEventListener } from "./events";
 import { MraidState } from "./state";
+import { Anything } from "./utils";
 
 export interface MRAIDApi {
   /**
@@ -17,7 +18,10 @@ export interface MRAIDApi {
    *
    * Since: 1.0
    */
-  addEventListener(event: MraidEvent, listener: MraidEventListener): void;
+  addEventListener(
+    event: MraidEvent | Anything,
+    listener: MraidEventListener | Anything
+  ): void;
 
   /**
    * Unsubscribe a specific handler method from a specific event.
@@ -29,8 +33,8 @@ export interface MRAIDApi {
    * Since: 1.0
    */
   removeEventListener(
-    event: MraidEvent,
-    listener: MraidEventListener | null | undefined
+    event: MraidEvent | Anything,
+    listener: MraidEventListener | Anything
   ): void;
 
   /**

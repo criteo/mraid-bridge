@@ -1,13 +1,34 @@
-import { instance, mock } from "ts-mockito";
-import { EventsCoordinator, MraidEvent } from "../src/events";
+import { anyString, instance, mock, verify } from "ts-mockito";
+import {
+  EventsCoordinator,
+  MraidEvent,
+  MraidEventListener,
+} from "../src/events";
 import { MraidState } from "../src/state";
 import { SafeString } from "../src/utils";
 import { SdkInteractor } from "../src/mraidbridge/sdkinteractor";
+import { LogLevel } from "../src/mraidbridge/loglevel";
 
 let eventsCoordinator: EventsCoordinator;
+let sdkInteractor: SdkInteractor;
+
+function hasAnyListeners(): boolean {
+  const map: Map<MraidEvent, Set<MraidEventListener>> = (
+    eventsCoordinator as any
+  ).eventListeners;
+
+  let hasAnyElement = false;
+  map.forEach((value, key) => {
+    if (value.size > 0) {
+      hasAnyElement = true;
+    }
+  });
+  return hasAnyElement;
+}
 
 beforeEach(() => {
-  eventsCoordinator = new EventsCoordinator(instance(mock(SdkInteractor)));
+  sdkInteractor = mock(SdkInteractor);
+  eventsCoordinator = new EventsCoordinator(instance(sdkInteractor));
 });
 
 describe("when addEventListener", () => {
@@ -111,6 +132,26 @@ describe("when addEventListener", () => {
 
     expect(triggerCount).toBe(2);
   });
+
+  it.each(["MyEventName", null, undefined, true, new Set(), 123, () => {}])(
+    "with %p event name then should delegate error to SdkInteractor.log",
+    (eventName) => {
+      eventsCoordinator.addEventListener(eventName, () => {});
+
+      verify(sdkInteractor.log(LogLevel.Error, anyString(), anyString()));
+      expect(hasAnyListeners()).toBe(false);
+    }
+  );
+
+  it.each(["MyListener", null, undefined, true, new Set(), 123])(
+    "with %p listener then should delegate error to SdkInteractor.log",
+    (listener) => {
+      eventsCoordinator.addEventListener(MraidEvent.Ready, listener);
+
+      verify(sdkInteractor.log(LogLevel.Error, anyString(), anyString()));
+      expect(hasAnyListeners()).toBe(false);
+    }
+  );
 });
 
 describe("when removeEventListener", () => {
@@ -174,25 +215,28 @@ describe("when removeEventListener", () => {
     expect(triggerCount).toBe(0);
   });
 
-  test("with null listener should remove all listeners and not trigger a listener", () => {
-    let triggerCount1 = 0;
-    let triggerCount2 = 0;
+  it.each([null, undefined])(
+    "with null listener should remove all listeners and not trigger a listener",
+    (listener) => {
+      let triggerCount1 = 0;
+      let triggerCount2 = 0;
 
-    const listener1 = () => {
-      triggerCount1 += 1;
-    };
-    const listener2 = () => {
-      triggerCount2 += 1;
-    };
+      const listener1 = () => {
+        triggerCount1 += 1;
+      };
+      const listener2 = () => {
+        triggerCount2 += 1;
+      };
 
-    eventsCoordinator.addEventListener(MraidEvent.Ready, listener1);
-    eventsCoordinator.addEventListener(MraidEvent.Ready, listener2);
-    eventsCoordinator.removeEventListener(MraidEvent.Ready, null);
-    eventsCoordinator.fireReadyEvent();
+      eventsCoordinator.addEventListener(MraidEvent.Ready, listener1);
+      eventsCoordinator.addEventListener(MraidEvent.Ready, listener2);
+      eventsCoordinator.removeEventListener(MraidEvent.Ready, listener);
+      eventsCoordinator.fireReadyEvent();
 
-    expect(triggerCount1).toBe(0);
-    expect(triggerCount2).toBe(0);
-  });
+      expect(triggerCount1).toBe(0);
+      expect(triggerCount2).toBe(0);
+    }
+  );
 
   test("given same listener for 2 different events and listener is removed for one event should trigger listener only once", () => {
     let triggerCount = 0;
@@ -209,4 +253,22 @@ describe("when removeEventListener", () => {
 
     expect(triggerCount).toBe(1);
   });
+
+  it.each(["MyEventName", null, undefined, true, new Set(), 123, () => {}])(
+    "with %p event name then should delegate error to SdkInteractor.log",
+    (eventName) => {
+      eventsCoordinator.removeEventListener(eventName, () => {});
+
+      verify(sdkInteractor.log(LogLevel.Error, anyString(), anyString()));
+    }
+  );
+
+  it.each(["MyListener", true, new Set(), 123])(
+    "with %p listener then should delegate error to SdkInteractor.log",
+    (listener) => {
+      eventsCoordinator.removeEventListener(MraidEvent.Ready, listener);
+
+      verify(sdkInteractor.log(LogLevel.Error, anyString(), anyString()));
+    }
+  );
 });
