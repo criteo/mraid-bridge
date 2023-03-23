@@ -1,5 +1,5 @@
 import { MraidBridge } from "./mraidbridge";
-import { LogLevel } from "./loglevel";
+import { LogLevel } from "../log/loglevel";
 
 /**
  * Interaction object is defined in global scope (window) so we are using
@@ -7,7 +7,7 @@ import { LogLevel } from "./loglevel";
  */
 declare global {
   interface Window {
-    criteoMraidBridge: CriteoInterface;
+    criteoMraidBridge?: CriteoInterface | null;
   }
 }
 
@@ -25,6 +25,8 @@ declare global {
 export declare interface CriteoInterface {
   log(logLevel: LogLevel, message: string, logId: string | null): void;
   open(url: string): void;
+  expand(width: number, height: number): void;
+  close(): void;
 }
 
 export class AndroidMraidBridge implements MraidBridge {
@@ -34,5 +36,13 @@ export class AndroidMraidBridge implements MraidBridge {
 
   open(url: string): void {
     window?.criteoMraidBridge?.open(url);
+  }
+
+  expand(width: number, height: number): void {
+    window?.criteoMraidBridge?.expand(width, height);
+  }
+
+  close(): void {
+    window?.criteoMraidBridge?.close();
   }
 }

@@ -3,7 +3,7 @@ import {
   CriteoInterface,
   AndroidMraidBridge,
 } from "../../src/mraidbridge/androidmraidbridge";
-import { LogLevel } from "../../src/mraidbridge/loglevel";
+import { LogLevel } from "../../src/log/loglevel";
 
 let androidMraidBridge: AndroidMraidBridge;
 let androidBridge: CriteoInterface;
@@ -30,4 +30,18 @@ test("when call open should delegate to criteoMraidBridge on window", () => {
   androidMraidBridge.open(url);
 
   verify(androidBridge.open(url)).once();
+});
+
+test("when call expand should delegate to criteoMraidBridge on window", () => {
+  const width = 123;
+  const height = 222;
+  androidMraidBridge.expand(width, height);
+
+  verify(androidBridge.expand(width, height)).once();
+});
+
+test("when call close should delegate to criteoMraidBridge on window", () => {
+  androidMraidBridge.close();
+
+  verify(androidBridge.close()).once();
 });

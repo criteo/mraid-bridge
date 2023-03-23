@@ -5,6 +5,7 @@ import { SDKApi } from "./sdkapi";
 import { IosMraidBridge } from "./mraidbridge/iosmraidbridge";
 import { AndroidMraidBridge } from "./mraidbridge/androidmraidbridge";
 import { SdkInteractor } from "./mraidbridge/sdkinteractor";
+import { Logger } from "./log/logger";
 
 export {};
 
@@ -18,7 +19,9 @@ const sdkInteractor = new SdkInteractor([
   new IosMraidBridge(),
   new AndroidMraidBridge(),
 ]);
+const eventsCoordinator = new EventsCoordinator();
+const logger = new Logger(eventsCoordinator, sdkInteractor);
 
 window.mraid =
   window.mraid ??
-  new MRAIDImplementation(new EventsCoordinator(sdkInteractor), sdkInteractor);
+  new MRAIDImplementation(eventsCoordinator, sdkInteractor, logger);

@@ -1,5 +1,5 @@
-import { capture, instance, mock, strictEqual, verify, when } from "ts-mockito";
-import { LogLevel } from "../../src/mraidbridge/loglevel";
+import { capture, instance, mock, when } from "ts-mockito";
+import { LogLevel } from "../../src/log/loglevel";
 import {
   IosMraidBridge,
   CriteoMessageHandler,
@@ -7,6 +7,8 @@ import {
   Webkit,
   MessageHandlers,
   OpenIosMessage,
+  ExpandIosMessage,
+  CloseIosMessage,
 } from "../../src/mraidbridge/iosmraidbridge";
 
 let iosMraidBridge: IosMraidBridge;
@@ -55,6 +57,32 @@ test("when call open should delegate to criteoMraidBridge on window", () => {
   const expectedMessage: OpenIosMessage = {
     action: "open",
     url,
+  };
+
+  const capturedMessage = capture(iosMessageHandler.postMessage).last()[0];
+  expect(capturedMessage).toStrictEqual(expectedMessage);
+});
+
+test("when call expand should delegate to criteoMraidBridge on window", () => {
+  const width = 123;
+  const height = 222;
+  iosMraidBridge.expand(width, height);
+
+  const expectedMessage: ExpandIosMessage = {
+    action: "expand",
+    width,
+    height,
+  };
+
+  const capturedMessage = capture(iosMessageHandler.postMessage).last()[0];
+  expect(capturedMessage).toStrictEqual(expectedMessage);
+});
+
+test("when call close should delegate to criteoMraidBridge on window", () => {
+  iosMraidBridge.close();
+
+  const expectedMessage: CloseIosMessage = {
+    action: "close",
   };
 
   const capturedMessage = capture(iosMessageHandler.postMessage).last()[0];

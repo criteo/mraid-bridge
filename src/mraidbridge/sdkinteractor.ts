@@ -1,5 +1,5 @@
 import { MraidBridge } from "./mraidbridge";
-import { LogLevel } from "./loglevel";
+import { LogLevel } from "../log/loglevel";
 
 /**
  * Composite which delegates calls to native platforms handlers
@@ -20,6 +20,18 @@ export class SdkInteractor {
   open(url: string) {
     this.callForAll((bridge) => {
       bridge.open(url);
+    });
+  }
+
+  expand(width: number, height: number) {
+    this.callForAll((bridge) => {
+      bridge.expand(width, height);
+    });
+  }
+
+  close() {
+    this.callForAll((bridge) => {
+      bridge.close();
     });
   }
 

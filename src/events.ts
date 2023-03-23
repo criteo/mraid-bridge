@@ -1,7 +1,6 @@
 import { MraidState } from "./state";
 import { Anything, isFunction, SafeString } from "./utils";
-import { LogLevel } from "./mraidbridge/loglevel";
-import { SdkInteractor } from "./mraidbridge/sdkinteractor";
+import { LogLevel } from "./log/loglevel";
 
 export enum MraidEvent {
   Ready = "ready",
@@ -29,35 +28,33 @@ export class EventsCoordinator {
     Object.values(MraidEvent).map((e) => [e, new Set()])
   );
 
-  private sdkInteractor: SdkInteractor;
-
-  constructor(sdkInteractor: SdkInteractor) {
-    this.sdkInteractor = sdkInteractor;
-  }
-
   addEventListener(
     event: MraidEvent | Anything,
-    listener: MraidEventListener | Anything
+    listener: MraidEventListener | Anything,
+    logger: (logLevel: LogLevel, method: string, message: string) => void
   ) {
     if (!event || !this.isCorrectEvent(event)) {
-      this.sdkInteractor.log(
+      logger(
         LogLevel.Error,
+        "addEventListener()",
         `Incorrect event when addEventListener.Type = ${typeof event}, value = ${event}`
       );
       return;
     }
 
     if (!listener) {
-      this.sdkInteractor.log(
+      logger(
         LogLevel.Error,
+        "addEventListener()",
         `Incorrect listener when addEventListener. It is null or undefined`
       );
       return;
     }
     // By MRAID spec listener can be any function
     if (!isFunction(listener)) {
-      this.sdkInteractor.log(
+      logger(
         LogLevel.Error,
+        "addEventListener()",
         `Incorrect listener when addEventListener. 
         Listener is not a function. Actual type = ${typeof listener}`
       );
@@ -69,19 +66,22 @@ export class EventsCoordinator {
 
   removeEventListener(
     event: MraidEvent | Anything,
-    listener: MraidEventListener | Anything
+    listener: MraidEventListener | Anything,
+    logger: (logLevel: LogLevel, method: string, message: string) => void
   ) {
     if (!event || !this.isCorrectEvent(event)) {
-      this.sdkInteractor.log(
+      logger(
         LogLevel.Error,
+        "removeEventListener()",
         `Incorrect event when removeEventListener.Type = ${typeof event}, value = ${event}`
       );
       return;
     }
 
     if (listener && !isFunction(listener)) {
-      this.sdkInteractor.log(
+      logger(
         LogLevel.Error,
+        "removeEventListener()",
         `Incorrect listener when removeEventListener. 
         Listener is not a function. Actual type = ${typeof listener}`
       );
