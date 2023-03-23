@@ -1,5 +1,5 @@
 import { MraidBridge } from "./mraidbridge";
-import { LogLevel } from "./loglevel";
+import { LogLevel } from "../log/loglevel";
 
 // #region MessageHandler
 
@@ -39,6 +39,13 @@ export declare interface OpenIosMessage extends IosMessage {
   url: string;
 }
 
+export declare interface ExpandIosMessage extends IosMessage {
+  width: number;
+  height: number;
+}
+
+export type CloseIosMessage = IosMessage;
+
 // #endregion
 
 export class IosMraidBridge implements MraidBridge {
@@ -58,6 +65,22 @@ export class IosMraidBridge implements MraidBridge {
       url,
     };
     this.postMessage(openMessage);
+  }
+
+  expand(width: number, height: number): void {
+    const expandMessage: ExpandIosMessage = {
+      action: "expand",
+      width,
+      height,
+    };
+    this.postMessage(expandMessage);
+  }
+
+  close(): void {
+    const closeMessage: CloseIosMessage = {
+      action: "close",
+    };
+    this.postMessage(closeMessage);
   }
 
   private postMessage(message: IosMessage) {

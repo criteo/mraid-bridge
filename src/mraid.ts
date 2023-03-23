@@ -1,16 +1,25 @@
-import { ExpandProperties, MRAIDApi } from "./mraidapi";
+import { MRAIDApi } from "./mraidapi";
 import { EventsCoordinator, MraidEvent, MraidEventListener } from "./events";
 import { SDKApi } from "./sdkapi";
 import { MraidState } from "./state";
-import { Anything, SafeString } from "./utils";
+import { Anything, isNumber, SafeString, Url } from "./utils";
 import { MraidPlacementType } from "./placement";
-import { LogLevel } from "./mraidbridge/loglevel";
+import { LogLevel } from "./log/loglevel";
 import { SdkInteractor } from "./mraidbridge/sdkinteractor";
+import {
+  defaultPropertiesValue,
+  ExpandProperties,
+  isValidExpandPropertiesObject,
+} from "./expand";
+import { Size } from "./size";
+import { Logger } from "./log/logger";
 
 export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private eventsCoordinator: EventsCoordinator;
 
   private sdkInteractor: SdkInteractor;
+
+  private logger: Logger;
 
   private currentState = MraidState.Loading;
 
@@ -18,12 +27,23 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
 
   private isCurrentlyViewable = false;
 
+  private currentExpandProperties = new ExpandProperties(
+    defaultPropertiesValue,
+    defaultPropertiesValue
+  );
+
+  private currentMaxSize = new Size(0, 0);
+
+  private pixelMultiplier = 1;
+
   constructor(
     eventsCoordinator: EventsCoordinator,
-    sdkInteractor: SdkInteractor
+    sdkInteractor: SdkInteractor,
+    logger: Logger
   ) {
     this.eventsCoordinator = eventsCoordinator;
     this.sdkInteractor = sdkInteractor;
+    this.logger = logger;
   }
 
   // #region MRAID Api
@@ -34,11 +54,12 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
 
   addEventListener(event: MraidEvent, listener: MraidEventListener) {
     try {
-      this.eventsCoordinator.addEventListener(event, listener);
+      this.eventsCoordinator.addEventListener(event, listener, this.logger.log);
     } catch (e) {
-      this.sdkInteractor.log(
+      this.logger.log(
         LogLevel.Error,
-        `Error when addEventListener, event = ${event}, listenerType = ${typeof listener}`
+        "addEventListener()",
+        `error when addEventListener, event = ${event}, listenerType = ${typeof listener}`
       );
     }
   }
@@ -48,11 +69,16 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     listener: MraidEventListener | null | undefined
   ) {
     try {
-      this.eventsCoordinator.removeEventListener(event, listener);
+      this.eventsCoordinator.removeEventListener(
+        event,
+        listener,
+        this.logger.log
+      );
     } catch (e) {
-      this.sdkInteractor.log(
+      this.logger.log(
         LogLevel.Error,
-        `Error when removeEventListener, event = ${event}, listenerType = ${typeof listener}`
+        "removeEventListener()",
+        `error when removeEventListener, event = ${event}, listenerType = ${typeof listener}`
       );
     }
   }
@@ -69,41 +95,95 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     return this.isCurrentlyViewable;
   }
 
-  expand(url?: URL) {
-    console.log(`expand(), url -> ${url}`);
+  expand(url?: Url | Anything) {
+    if (!this.canPerformActions()) {
+      this.logger.log(
+        LogLevel.Error,
+        "expand()",
+        `can't expand in ${this.currentState} state`
+      );
+      return;
+    }
+
+    if (this.placementType === MraidPlacementType.Interstitial) {
+      this.logger.log(
+        LogLevel.Error,
+        "expand()",
+        "can't expand interstitial ad"
+      );
+      return;
+    }
+
+    if (url != null) {
+      this.logger.log(
+        LogLevel.Error,
+        "expand()",
+        "two-part expandable ads are not supported"
+      );
+    } else {
+      this.sdkInteractor.expand(
+        this.currentExpandProperties.width,
+        this.currentExpandProperties.height
+      );
+    }
   }
 
   getExpandProperties(): ExpandProperties {
-    // TODO: verify proper return type
-    return new ExpandProperties(1, 1, false, false);
+    let width;
+    if (this.currentExpandProperties.width === defaultPropertiesValue) {
+      width = this.currentMaxSize.width * this.pixelMultiplier;
+    } else {
+      width = this.currentExpandProperties.width;
+    }
+
+    let height;
+    if (this.currentExpandProperties.height === defaultPropertiesValue) {
+      height = this.currentMaxSize.height * this.pixelMultiplier;
+    } else {
+      height = this.currentExpandProperties.height;
+    }
+
+    return new ExpandProperties(width, height);
   }
 
-  setExpandProperties(properties: ExpandProperties) {
-    // TODO: verify proper set type
-    console.log(`setExpandProperties(), properties -> ${properties}`);
+  setExpandProperties(properties?: ExpandProperties | Anything) {
+    if (this.isCorrectProperties(properties)) {
+      this.currentExpandProperties.width =
+        properties.width ?? defaultPropertiesValue;
+      this.currentExpandProperties.height =
+        properties.height ?? defaultPropertiesValue;
+    }
   }
 
   close() {
-    console.log("close()");
+    this.sdkInteractor.close();
   }
 
   useCustomClose(useCustomClose: boolean) {
-    console.log(`useCustomClose(), useCustomClose -> ${useCustomClose}`);
+    this.logger.log(
+      LogLevel.Warning,
+      "useCustomClose()",
+      "useCustomClose() is not supported"
+    );
   }
 
-  open(url: string | Anything) {
+  open(url: Url | Anything) {
     if (url) {
       if (typeof url === "string") {
         this.sdkInteractor.open(url);
+      } else if (url instanceof URL) {
+        this.sdkInteractor.open(url.toString());
       } else {
-        this.sdkInteractor.log(
+        this.logger.log(
           LogLevel.Error,
+          "open()",
           "Error when open(), url is not a string"
         );
       }
     } else {
-      this.sdkInteractor.log(
+      this.logger.log(
         LogLevel.Error,
+        "open()",
         "Error when open(), url is null, empty or undefined"
       );
     }
@@ -114,10 +194,10 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   // #region SDKApi
 
   notifyReady(placementType: MraidPlacementType) {
-    this.sdkInteractor.log(
+    this.logger.log(
       LogLevel.Debug,
-      `notifyReady(), placementType=${placementType}`,
-      null
+      "notifyReady()",
+      `placementType=${placementType}`
     );
     this.placementType = placementType;
     this.setReady();
@@ -128,14 +208,60 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   }
 
   setIsViewable(isViewable: boolean) {
-    this.sdkInteractor.log(
+    this.logger.log(
       LogLevel.Debug,
-      `setIsViewable(), isViewable=${isViewable}`,
-      null
+      "setIsViewable()",
+      `isViewable=${isViewable}`
     );
     if (this.isCurrentlyViewable !== isViewable) {
       this.isCurrentlyViewable = isViewable;
       this.eventsCoordinator.fireViewableChangeEvent(isViewable);
+    }
+  }
+
+  setMaxSize(width: number, height: number, pixelMultiplier: number): void {
+    this.currentMaxSize.width = width;
+    this.currentMaxSize.height = height;
+    this.pixelMultiplier = pixelMultiplier;
+  }
+
+  notifyClosed(): void {
+    if (!this.canPerformActions()) {
+      this.logger.log(
+        LogLevel.Warning,
+        "notifyClosed()",
+        `can't close in ${this.currentState} state`
+      );
+      return;
+    }
+    if (this.currentState === MraidState.Expanded) {
+      this.updateState(MraidState.Default);
+    } else if (this.currentState === MraidState.Default) {
+      this.updateState(MraidState.Hidden);
+    }
+  }
+
+  notifyExpanded(): void {
+    switch (this.currentState) {
+      case MraidState.Default:
+        this.updateState(MraidState.Expanded);
+        break;
+      case MraidState.Expanded:
+        this.logger.log(
+          LogLevel.Warning,
+          "notifyExpanded()",
+          "ad is already expanded"
+        );
+        break;
+      case MraidState.Loading:
+      case MraidState.Hidden:
+        this.logger.log(
+          LogLevel.Warning,
+          "notifyExpanded()",
+          `can't expand from ${this.currentState}`
+        );
+        break;
+      default:
     }
   }
 
@@ -151,5 +277,77 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
       this.updateState(MraidState.Default);
       this.eventsCoordinator.fireReadyEvent();
     }
+  }
+
+  private canPerformActions(): boolean {
+    return (
+      this.currentState !== MraidState.Loading &&
+      this.currentState !== MraidState.Hidden
+    );
+  }
+
+  private isCorrectProperties(
+    properties?: ExpandProperties | Anything
+  ): boolean {
+    if (isValidExpandPropertiesObject(properties)) {
+      const { width, height, useCustomClose, isModal } = properties;
+
+      const isCorrectWidth = this.isCorrectDimension(width);
+      if (!isCorrectWidth) return false;
+
+      const isCorrectHeight = this.isCorrectDimension(height);
+      if (!isCorrectHeight) return false;
+
+      if (useCustomClose) {
+        this.logger.log(
+          LogLevel.Warning,
+          "setExpandProperties()",
+          "useCustomClose is not supported"
+        );
+      }
+
+      if (isModal != null && !isModal) {
+        this.logger.log(
+          LogLevel.Warning,
+          "setExpandProperties()",
+          "isModal property is readonly and always equals to true"
+        );
+      }
+      return true;
+    }
+    this.logger.log(
+      LogLevel.Error,
+      "setExpandProperties()",
+      `properties is ${properties}`
+    );
+    return false;
+  }
+
+  private isCorrectDimension(dimension: number | Anything): boolean {
+    if (dimension) {
+      if (!isNumber(dimension)) {
+        this.logger.log(
+          LogLevel.Error,
+          "setExpandProperties()",
+          `width is not a number, width is ${typeof dimension}`
+        );
+        return false;
+      }
+      if (!this.isInAcceptedBounds(dimension)) {
+        this.logger.log(
+          LogLevel.Error,
+          "setExpandProperties()",
+          `width is ${dimension}`
+        );
+        return false;
+      }
+    } else {
+      return true;
+    }
+    return true;
+  }
+
+  private isInAcceptedBounds(number: number): boolean {
+    return Number.isFinite(number) && number >= 0;
   }
 }

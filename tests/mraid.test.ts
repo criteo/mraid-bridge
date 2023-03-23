@@ -1,21 +1,33 @@
-import { anyString, anything, instance, mock, verify } from "ts-mockito";
+import {
+  anyFunction,
+  anyString,
+  anything,
+  instance,
+  mock,
+  verify,
+} from "ts-mockito";
 import { MRAIDImplementation } from "../src/mraid";
 import { EventsCoordinator, MraidEvent } from "../src/events";
 import { MraidState } from "../src/state";
 import { MraidPlacementType } from "../src/placement";
 import { SdkInteractor } from "../src/mraidbridge/sdkinteractor";
-import { LogLevel } from "../src/mraidbridge/loglevel";
+import { LogLevel } from "../src/log/loglevel";
+import { defaultPropertiesValue, ExpandProperties } from "../src/expand";
+import { Logger } from "../src/log/logger";
 
 let mraid: MRAIDImplementation;
 let eventsCoordinator: EventsCoordinator;
 let sdkInteractor: SdkInteractor;
+let logger: Logger;
 
 beforeEach(() => {
   eventsCoordinator = mock(EventsCoordinator);
   sdkInteractor = mock(SdkInteractor);
+  logger = mock(Logger);
   mraid = new MRAIDImplementation(
     instance(eventsCoordinator),
-    instance(sdkInteractor)
+    instance(sdkInteractor),
+    instance(logger)
   );
 });
 
@@ -32,7 +44,9 @@ test("when addEventListener should delegate to EventsCoordinator", () => {
   const listener = () => {};
   mraid.addEventListener(event, listener);
 
-  verify(eventsCoordinator.addEventListener(event, listener)).once();
+  verify(
+    eventsCoordinator.addEventListener(event, listener, anyFunction())
+  ).once();
 });
 
 test("when removeEventListener should delegate to EventsCoordinator", () => {
@@ -40,7 +54,9 @@ test("when removeEventListener should delegate to EventsCoordinator", () => {
   const listener = () => {};
   mraid.removeEventListener(event, listener);
 
-  verify(eventsCoordinator.removeEventListener(event, listener)).once();
+  verify(
+    eventsCoordinator.removeEventListener(event, listener, anyFunction())
+  ).once();
 });
 
 describe("when notifyReady", () => {
@@ -113,23 +129,232 @@ test("given isViewable = false when setIsViewable to false should not fireViewab
 
 describe("when open", () => {
   test("with valid string then should delegate to SdkInteractor.open", () => {
-    const url = "https://criteo.com";
+    const url = "https://criteo.com/";
 
     mraid.open(url);
 
     verify(sdkInteractor.open(url)).once();
   });
 
-  test("with empty string then should delegate error to SdkInteractor.log", () => {
+  test("with valid URL then should delegate to SdkInteractor.open", () => {
+    const urlString = "https://criteo.com/";
+    const url = new URL(urlString);
+
+    mraid.open(url);
+
+    verify(sdkInteractor.open(urlString)).once();
+  });
+
+  test("with empty string then should log error", () => {
     mraid.open("");
-    verify(sdkInteractor.log(LogLevel.Error, anyString(), anyString()));
+    verify(logger.log(LogLevel.Error, "open()", anyString())).once();
   });
 
   it.each([null, undefined, 1, true, () => {}, new Set()])(
-    "with %p then should delegate error to SdkInteractor.log",
+    "with %p then should log error",
     (invalidString) => {
       mraid.open(invalidString);
-      verify(sdkInteractor.log(LogLevel.Error, anyString(), anyString()));
+      verify(logger.log(LogLevel.Error, "open()", anyString())).once();
     }
   );
+});
+
+describe("when setExpandProperties", () => {
+  beforeEach(() => {
+    mraid.setMaxSize(1080, 720, 2);
+  });
+
+  it.each([
+    [{}, new ExpandProperties(2160, 1440)],
+    [{ width: 25 }, new ExpandProperties(25, 1440)],
+    [{ height: 25 }, new ExpandProperties(2160, 25)],
+    [{ height: 255, width: 256 }, new ExpandProperties(256, 255)],
+    [{ width: 123, height: 456 }, new ExpandProperties(123, 456)],
+    [{ width: 123, height: 456 }, new ExpandProperties(123, 456)],
+    [
+      { width: 111, height: 222, isModal: false },
+      new ExpandProperties(111, 222),
+    ],
+    [
+      { width: 111, height: 222, useCustomClose: true },
+      new ExpandProperties(111, 222),
+    ],
+    [
+      { width: 111, height: 222, useCustomClose: true, isModal: false },
+      new ExpandProperties(111, 222),
+    ],
+  ])(
+    "with %j should return same expand properties when getExpandProperties",
+    (inputProperties, expectedProperties) => {
+      mraid.setExpandProperties(inputProperties);
+
+      expect(mraid.getExpandProperties()).toEqual(expectedProperties);
+    }
+  );
+
+  it.each([null, undefined, false, 12, true])(
+    "with %p then should log error",
+    (inputProperties) => {
+      mraid.setExpandProperties(inputProperties);
+
+      verify(
+        logger.log(LogLevel.Error, "setExpandProperties()", anyString())
+      ).once();
+    }
+  );
+
+  it.each([
+    { useCustomClose: true },
+    { isModal: false },
+    { width: 42, height: 42, useCustomClose: true, isModal: true },
+  ])("with %j then should log warning", (inputProperties) => {
+    mraid.setExpandProperties(inputProperties);
+
+    verify(
+      logger.log(LogLevel.Warning, "setExpandProperties()", anyString())
+    ).once();
+  });
+
+  test("with { width: 42, height: 42, useCustomClose: true, isModal: false } then should log warning twice", () => {
+    mraid.setExpandProperties({
+      width: 42,
+      height: 42,
+      useCustomClose: true,
+      isModal: false,
+    });
+
+    verify(
+      logger.log(LogLevel.Warning, "setExpandProperties()", anyString())
+    ).twice();
+  });
+});
+
+describe("when expand ", () => {
+  test("without url and with default expandParams should delegate to SdkInteractor.expand", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+
+    mraid.expand();
+    verify(
+      sdkInteractor.expand(defaultPropertiesValue, defaultPropertiesValue)
+    ).once();
+  });
+
+  test("without url and with custom expand properties should delegate to SdkInteractor.expand", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+    mraid.setExpandProperties(new ExpandProperties(100, 100));
+
+    mraid.expand();
+    verify(sdkInteractor.expand(100, 100)).once();
+  });
+
+  test("with url then should log error", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+
+    mraid.expand("https://criteo.com");
+
+    verify(logger.log(LogLevel.Error, "expand()", anyString())).once();
+    verify(sdkInteractor.expand(anything(), anything())).never();
+  });
+
+  test("interstitial ad then should log error", () => {
+    mraid.notifyReady(MraidPlacementType.Interstitial);
+
+    mraid.expand();
+
+    verify(logger.log(LogLevel.Error, "expand()", anyString())).once();
+  });
+
+  test("hidden ad then should log error", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+    mraid.notifyClosed();
+
+    mraid.expand();
+
+    verify(logger.log(LogLevel.Error, "expand()", anyString())).once();
+  });
+});
+
+test("when close should delegate to SdkInteractor.close", () => {
+  mraid.close();
+  verify(sdkInteractor.close()).once();
+});
+
+test("when useCustomClose then should log warning", () => {
+  mraid.useCustomClose(true);
+
+  verify(logger.log(LogLevel.Warning, "useCustomClose()", anyString())).once();
+});
+
+describe("when notifyExpanded", () => {
+  test("current state is default then should change state to expanded", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+
+    mraid.notifyExpanded();
+
+    expect(mraid.getState()).toBe(MraidState.Expanded);
+  });
+
+  test("current state is expanded then should log warning", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+    mraid.notifyExpanded();
+
+    mraid.notifyExpanded();
+
+    verify(
+      logger.log(LogLevel.Warning, "notifyExpanded()", anyString())
+    ).once();
+  });
+
+  test("current state is loading then should log warning", () => {
+    mraid.notifyExpanded();
+
+    verify(
+      logger.log(LogLevel.Warning, "notifyExpanded()", anyString())
+    ).once();
+  });
+
+  test("current state is hidden then should log warning", () => {
+    mraid.notifyReady(MraidPlacementType.Interstitial);
+    mraid.notifyClosed();
+
+    mraid.notifyExpanded();
+
+    verify(
+      logger.log(LogLevel.Warning, "notifyExpanded()", anyString())
+    ).once();
+  });
+});
+
+describe("when notifyClosed()", () => {
+  test("current state is loading then should log warning", () => {
+    mraid.notifyClosed();
+
+    verify(logger.log(LogLevel.Warning, "notifyClosed()", anyString())).once();
+  });
+
+  test("current state is hidden then should log warning", () => {
+    mraid.notifyClosed();
+    mraid.notifyReady(MraidPlacementType.Inline);
+
+    mraid.notifyClosed();
+
+    verify(logger.log(LogLevel.Warning, "notifyClosed()", anyString())).once();
+  });
+
+  test("current state is expanded then should change state to default", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+    mraid.notifyExpanded();
+
+    mraid.notifyClosed();
+
+    expect(mraid.getState()).toBe(MraidState.Default);
+  });
+
+  test("current state is default then should change state to hidden", () => {
+    mraid.notifyReady(MraidPlacementType.Interstitial);
+
+    mraid.notifyClosed();
+
+    expect(mraid.getState()).toBe(MraidState.Hidden);
+  });
 });

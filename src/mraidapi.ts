@@ -1,6 +1,7 @@
 import { MraidEvent, MraidEventListener } from "./events";
 import { MraidState } from "./state";
-import { Anything } from "./utils";
+import { Anything, Url } from "./utils";
+import { ExpandProperties } from "./expand";
 
 export interface MRAIDApi {
   /**
@@ -74,7 +75,7 @@ export interface MRAIDApi {
    *
    * Since: 1.0
    */
-  expand(url?: URL): void;
+  expand(url?: Url | Anything): void;
 
   /**
    * @returns Current ExpandProperties object
@@ -89,7 +90,7 @@ export interface MRAIDApi {
    *
    * Since: 1.0
    */
-  setExpandProperties(properties: ExpandProperties): void;
+  setExpandProperties(properties?: ExpandProperties | Anything): void;
 
   /**
    * The close method will cause the ad webview to downgrade its state.
@@ -119,40 +120,4 @@ export interface MRAIDApi {
    * Since: 1.0
    */
   open(url: string | Anything): void;
-}
-
-export class ExpandProperties {
-  /**
-   * Width of creative in pixels, default is full screen width
-   */
-  width: number;
-
-  /**
-   * Height of creative in pixels, default is full screen height
-   */
-  height: number;
-
-  /**
-   * true, SDK will stop showing default close graphic and rely on ad creative’s custom close indicator.
-   * false (default), SDK will display the default close graphic.
-   */
-  useCustomClose: boolean;
-
-  /**
-   * true, the SDK is providing a modal container for the expanded ad.
-   * false, the SDK is not providing a modal container for the expanded ad.
-   */
-  isModal: boolean;
-
-  constructor(
-    width: number,
-    height: number,
-    useCustomClose: boolean,
-    isModal: boolean
-  ) {
-    this.width = width;
-    this.height = height;
-    this.useCustomClose = useCustomClose;
-    this.isModal = isModal;
-  }
 }

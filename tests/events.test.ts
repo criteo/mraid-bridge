@@ -1,4 +1,4 @@
-import { anyString, instance, mock, verify } from "ts-mockito";
+import { anyString, instance, mock, spy, verify } from "ts-mockito";
 import {
   EventsCoordinator,
   MraidEvent,
@@ -6,11 +6,16 @@ import {
 } from "../src/events";
 import { MraidState } from "../src/state";
 import { SafeString } from "../src/utils";
-import { SdkInteractor } from "../src/mraidbridge/sdkinteractor";
-import { LogLevel } from "../src/mraidbridge/loglevel";
+import { LogLevel } from "../src/log/loglevel";
 
 let eventsCoordinator: EventsCoordinator;
-let sdkInteractor: SdkInteractor;
+
+class Logger {
+  log(logLevel: LogLevel, method: string, message: string) {}
+}
+
+let logger: Logger;
+let mockedLogger: Logger;
 
 function hasAnyListeners(): boolean {
   const map: Map<MraidEvent, Set<MraidEventListener>> = (
@@ -27,8 +32,9 @@ function hasAnyListeners(): boolean {
 }
 
 beforeEach(() => {
-  sdkInteractor = mock(SdkInteractor);
-  eventsCoordinator = new EventsCoordinator(instance(sdkInteractor));
+  mockedLogger = mock(Logger);
+  logger = instance(mockedLogger);
+  eventsCoordinator = new EventsCoordinator();
 });
 
 describe("when addEventListener", () => {
@@ -38,7 +44,7 @@ describe("when addEventListener", () => {
       triggerCount += 1;
     };
 
-    eventsCoordinator.addEventListener(MraidEvent.Ready, listener);
+    eventsCoordinator.addEventListener(MraidEvent.Ready, listener, logger.log);
     eventsCoordinator.fireReadyEvent();
 
     expect(triggerCount).toBe(1);
@@ -57,7 +63,7 @@ describe("when addEventListener", () => {
       capturedAction = action;
     };
 
-    eventsCoordinator.addEventListener(MraidEvent.Error, listener);
+    eventsCoordinator.addEventListener(MraidEvent.Error, listener, logger.log);
     eventsCoordinator.fireErrorEvent(inputMessage, inputAction);
 
     expect(triggerCount).toBe(1);
@@ -75,7 +81,11 @@ describe("when addEventListener", () => {
       capturedState = state;
     };
 
-    eventsCoordinator.addEventListener(MraidEvent.StateChange, listener);
+    eventsCoordinator.addEventListener(
+      MraidEvent.StateChange,
+      listener,
+      logger.log
+    );
     eventsCoordinator.fireStateChangeEvent(inputState);
 
     expect(triggerCount).toBe(1);
@@ -92,7 +102,11 @@ describe("when addEventListener", () => {
       capturedIsViewable = state;
     };
 
-    eventsCoordinator.addEventListener(MraidEvent.ViewableChange, listener);
+    eventsCoordinator.addEventListener(
+      MraidEvent.ViewableChange,
+      listener,
+      logger.log
+    );
     eventsCoordinator.fireViewableChangeEvent(isViewable);
 
     expect(triggerCount).toBe(1);
@@ -110,8 +124,8 @@ describe("when addEventListener", () => {
       triggerCount2 += 1;
     };
 
-    eventsCoordinator.addEventListener(MraidEvent.Ready, listener1);
-    eventsCoordinator.addEventListener(MraidEvent.Ready, listener2);
+    eventsCoordinator.addEventListener(MraidEvent.Ready, listener1, logger.log);
+    eventsCoordinator.addEventListener(MraidEvent.Ready, listener2, logger.log);
     eventsCoordinator.fireReadyEvent();
 
     expect(triggerCount1).toBe(1);
@@ -125,8 +139,12 @@ describe("when addEventListener", () => {
       triggerCount += 1;
     };
 
-    eventsCoordinator.addEventListener(MraidEvent.Ready, listener);
-    eventsCoordinator.addEventListener(MraidEvent.ViewableChange, listener);
+    eventsCoordinator.addEventListener(MraidEvent.Ready, listener, logger.log);
+    eventsCoordinator.addEventListener(
+      MraidEvent.ViewableChange,
+      listener,
+      logger.log
+    );
     eventsCoordinator.fireReadyEvent();
     eventsCoordinator.fireViewableChangeEvent(true);
 
@@ -136,9 +154,9 @@ describe("when addEventListener", () => {
   it.each(["MyEventName", null, undefined, true, new Set(), 123, () => {}])(
     "with %p event name then should delegate error to SdkInteractor.log",
     (eventName) => {
-      eventsCoordinator.addEventListener(eventName, () => {});
+      eventsCoordinator.addEventListener(eventName, () => {}, logger.log);
 
-      verify(sdkInteractor.log(LogLevel.Error, anyString(), anyString()));
+      verify(mockedLogger.log(LogLevel.Error, anyString(), anyString())).once();
       expect(hasAnyListeners()).toBe(false);
     }
   );
@@ -146,9 +164,13 @@ describe("when addEventListener", () => {
   it.each(["MyListener", null, undefined, true, new Set(), 123])(
     "with %p listener then should delegate error to SdkInteractor.log",
     (listener) => {
-      eventsCoordinator.addEventListener(MraidEvent.Ready, listener);
+      eventsCoordinator.addEventListener(
+        MraidEvent.Ready,
+        listener,
+        logger.log
+      );
 
-      verify(sdkInteractor.log(LogLevel.Error, anyString(), anyString()));
+      verify(mockedLogger.log(LogLevel.Error, anyString(), anyString())).once();
       expect(hasAnyListeners()).toBe(false);
     }
   );
@@ -161,8 +183,12 @@ describe("when removeEventListener", () => {
       triggerCount += 1;
     };
 
-    eventsCoordinator.addEventListener(MraidEvent.Ready, listener);
-    eventsCoordinator.removeEventListener(MraidEvent.Ready, listener);
+    eventsCoordinator.addEventListener(MraidEvent.Ready, listener, logger.log);
+    eventsCoordinator.removeEventListener(
+      MraidEvent.Ready,
+      listener,
+      logger.log
+    );
     eventsCoordinator.fireReadyEvent();
 
     expect(triggerCount).toBe(0);
@@ -177,8 +203,12 @@ describe("when removeEventListener", () => {
       triggerCount += 1;
     };
 
-    eventsCoordinator.addEventListener(MraidEvent.Error, listener);
-    eventsCoordinator.removeEventListener(MraidEvent.Error, listener);
+    eventsCoordinator.addEventListener(MraidEvent.Error, listener, logger.log);
+    eventsCoordinator.removeEventListener(
+      MraidEvent.Error,
+      listener,
+      logger.log
+    );
     eventsCoordinator.fireErrorEvent(inputMessage, inputAction);
 
     expect(triggerCount).toBe(0);
@@ -192,9 +222,17 @@ describe("when removeEventListener", () => {
       triggerCount += 1;
     };
 
-    eventsCoordinator.addEventListener(MraidEvent.StateChange, listener);
+    eventsCoordinator.addEventListener(
+      MraidEvent.StateChange,
+      listener,
+      logger.log
+    );
 
-    eventsCoordinator.removeEventListener(MraidEvent.StateChange, listener);
+    eventsCoordinator.removeEventListener(
+      MraidEvent.StateChange,
+      listener,
+      logger.log
+    );
     eventsCoordinator.fireStateChangeEvent(inputState);
 
     expect(triggerCount).toBe(0);
@@ -208,8 +246,16 @@ describe("when removeEventListener", () => {
       triggerCount += 1;
     };
 
-    eventsCoordinator.addEventListener(MraidEvent.ViewableChange, listener);
-    eventsCoordinator.removeEventListener(MraidEvent.ViewableChange, listener);
+    eventsCoordinator.addEventListener(
+      MraidEvent.ViewableChange,
+      listener,
+      logger.log
+    );
+    eventsCoordinator.removeEventListener(
+      MraidEvent.ViewableChange,
+      listener,
+      logger.log
+    );
     eventsCoordinator.fireViewableChangeEvent(isViewable);
 
     expect(triggerCount).toBe(0);
@@ -228,9 +274,21 @@ describe("when removeEventListener", () => {
         triggerCount2 += 1;
       };
 
-      eventsCoordinator.addEventListener(MraidEvent.Ready, listener1);
-      eventsCoordinator.addEventListener(MraidEvent.Ready, listener2);
-      eventsCoordinator.removeEventListener(MraidEvent.Ready, listener);
+      eventsCoordinator.addEventListener(
+        MraidEvent.Ready,
+        listener1,
+        logger.log
+      );
+      eventsCoordinator.addEventListener(
+        MraidEvent.Ready,
+        listener2,
+        logger.log
+      );
+      eventsCoordinator.removeEventListener(
+        MraidEvent.Ready,
+        listener,
+        logger.log
+      );
       eventsCoordinator.fireReadyEvent();
 
       expect(triggerCount1).toBe(0);
@@ -245,9 +303,17 @@ describe("when removeEventListener", () => {
       triggerCount += 1;
     };
 
-    eventsCoordinator.addEventListener(MraidEvent.Ready, listener);
-    eventsCoordinator.addEventListener(MraidEvent.ViewableChange, listener);
-    eventsCoordinator.removeEventListener(MraidEvent.Ready, listener);
+    eventsCoordinator.addEventListener(MraidEvent.Ready, listener, logger.log);
+    eventsCoordinator.addEventListener(
+      MraidEvent.ViewableChange,
+      listener,
+      logger.log
+    );
+    eventsCoordinator.removeEventListener(
+      MraidEvent.Ready,
+      listener,
+      logger.log
+    );
     eventsCoordinator.fireReadyEvent();
     eventsCoordinator.fireViewableChangeEvent(true);
 
@@ -257,18 +323,22 @@ describe("when removeEventListener", () => {
   it.each(["MyEventName", null, undefined, true, new Set(), 123, () => {}])(
     "with %p event name then should delegate error to SdkInteractor.log",
     (eventName) => {
-      eventsCoordinator.removeEventListener(eventName, () => {});
+      eventsCoordinator.removeEventListener(eventName, () => {}, logger.log);
 
-      verify(sdkInteractor.log(LogLevel.Error, anyString(), anyString()));
+      verify(mockedLogger.log(LogLevel.Error, anyString(), anyString())).once();
     }
   );
 
   it.each(["MyListener", true, new Set(), 123])(
     "with %p listener then should delegate error to SdkInteractor.log",
     (listener) => {
-      eventsCoordinator.removeEventListener(MraidEvent.Ready, listener);
+      eventsCoordinator.removeEventListener(
+        MraidEvent.Ready,
+        listener,
+        logger.log
+      );
 
-      verify(sdkInteractor.log(LogLevel.Error, anyString(), anyString()));
+      verify(mockedLogger.log(LogLevel.Error, anyString(), anyString())).once();
     }
   );
 });

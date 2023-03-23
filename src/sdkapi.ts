@@ -22,7 +22,30 @@ export interface SDKApi {
    *
    * @param isViewable
    * "true" -> ad is currently visible
-   * "false" -> ad is off screen
+   * "false" -> ad is off-screen
    */
   setIsViewable(isViewable: boolean): void;
+
+  /**
+   * Report mraid object about max available size ad can expand to
+   *
+   * SDK should report this before invoking notifyReady and
+   * every time max available size changes(orientation change, app resize etc.)
+   *
+   * @param width in density-independent pixels
+   * @param height in density-independent pixels
+   * @param pixelMultiplier multiplier to calculate pixel dimension
+   * widthInPixels = width * pixelMultiplier
+   */
+  setMaxSize(width: number, height: number, pixelMultiplier: number): void;
+
+  /**
+   * Report mraid object about successful expand
+   */
+  notifyExpanded(): void;
+
+  /**
+   * Report mraid object about successful close
+   */
+  notifyClosed(): void;
 }
