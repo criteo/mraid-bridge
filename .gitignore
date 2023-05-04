@@ -139,7 +139,7 @@ dist
 .svelte-kit
 
 # Build folder
-/build/*
+#/build/*
 
 ### Gradle ###
 .gradle
