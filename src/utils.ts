@@ -10,7 +10,7 @@ export function isNumber(any: any): boolean {
 
 /**
  * Used in public methods to enable type checks and testing since mraid
- * will be used form javascript
+ * will be used from javascript
  */
 export declare type Anything = null | undefined | any;
 
