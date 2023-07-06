@@ -358,3 +358,15 @@ describe("when notifyClosed()", () => {
     expect(mraid.getState()).toBe(MraidState.Hidden);
   });
 });
+
+test("when createCalendarEvent then should log error", () => {
+  mraid.createCalendarEvent({});
+
+  verify(logger.log(LogLevel.Error, "createCalendarEvent", anyString())).once();
+});
+
+test("when storePicture then should log error", () => {
+  mraid.storePicture("https:www.somedomain.com/promotion.png");
+
+  verify(logger.log(LogLevel.Error, "storePicture", anyString())).once();
+});

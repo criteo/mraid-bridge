@@ -120,4 +120,18 @@ export interface MRAIDApi {
    * Since: 1.0
    */
   open(url: string | Anything): void;
+
+  /**
+   * The createCalendarEvent method opens the device UI to create a new calendar event.
+   *
+   * Since: 2.0
+   */
+  createCalendarEvent(parameters: Anything): void;
+
+  /**
+   * The storePicture method will place a picture in the device's photo album.
+   *
+   * Since 2.0
+   */
+  storePicture(uri: Anything): void;
 }
