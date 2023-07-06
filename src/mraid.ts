@@ -49,7 +49,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   // #region MRAID Api
 
   getVersion(): string {
-    return "1.0";
+    return "2.0";
   }
 
   addEventListener(event: MraidEvent, listener: MraidEventListener) {
