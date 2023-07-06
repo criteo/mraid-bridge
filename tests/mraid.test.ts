@@ -147,14 +147,14 @@ describe("when open", () => {
 
   test("with empty string then should log error", () => {
     mraid.open("");
-    verify(logger.log(LogLevel.Error, "open()", anyString())).once();
+    verify(logger.log(LogLevel.Error, "open", anyString())).once();
   });
 
   it.each([null, undefined, 1, true, () => {}, new Set()])(
     "with %p then should log error",
     (invalidString) => {
       mraid.open(invalidString);
-      verify(logger.log(LogLevel.Error, "open()", anyString())).once();
+      verify(logger.log(LogLevel.Error, "open", anyString())).once();
     }
   );
 });
@@ -198,7 +198,7 @@ describe("when setExpandProperties", () => {
       mraid.setExpandProperties(inputProperties);
 
       verify(
-        logger.log(LogLevel.Error, "setExpandProperties()", anyString())
+        logger.log(LogLevel.Error, "setExpandProperties", anyString())
       ).once();
     }
   );
@@ -211,7 +211,7 @@ describe("when setExpandProperties", () => {
     mraid.setExpandProperties(inputProperties);
 
     verify(
-      logger.log(LogLevel.Warning, "setExpandProperties()", anyString())
+      logger.log(LogLevel.Warning, "setExpandProperties", anyString())
     ).once();
   });
 
@@ -224,7 +224,7 @@ describe("when setExpandProperties", () => {
     });
 
     verify(
-      logger.log(LogLevel.Warning, "setExpandProperties()", anyString())
+      logger.log(LogLevel.Warning, "setExpandProperties", anyString())
     ).twice();
   });
 });
@@ -252,7 +252,7 @@ describe("when expand ", () => {
 
     mraid.expand("https://criteo.com");
 
-    verify(logger.log(LogLevel.Error, "expand()", anyString())).once();
+    verify(logger.log(LogLevel.Error, "expand", anyString())).once();
     verify(sdkInteractor.expand(anything(), anything())).never();
   });
 
@@ -261,7 +261,7 @@ describe("when expand ", () => {
 
     mraid.expand();
 
-    verify(logger.log(LogLevel.Error, "expand()", anyString())).once();
+    verify(logger.log(LogLevel.Error, "expand", anyString())).once();
   });
 
   test("hidden ad then should log error", () => {
@@ -270,7 +270,7 @@ describe("when expand ", () => {
 
     mraid.expand();
 
-    verify(logger.log(LogLevel.Error, "expand()", anyString())).once();
+    verify(logger.log(LogLevel.Error, "expand", anyString())).once();
   });
 });
 
@@ -279,10 +279,10 @@ test("when close should delegate to SdkInteractor.close", () => {
   verify(sdkInteractor.close()).once();
 });
 
-test("when useCustomClose then should log warning", () => {
+test("when useCustomClose then should log error", () => {
   mraid.useCustomClose(true);
 
-  verify(logger.log(LogLevel.Warning, "useCustomClose()", anyString())).once();
+  verify(logger.log(LogLevel.Error, "useCustomClose", anyString())).once();
 });
 
 describe("when notifyExpanded", () => {
@@ -300,17 +300,13 @@ describe("when notifyExpanded", () => {
 
     mraid.notifyExpanded();
 
-    verify(
-      logger.log(LogLevel.Warning, "notifyExpanded()", anyString())
-    ).once();
+    verify(logger.log(LogLevel.Warning, "notifyExpanded", anyString())).once();
   });
 
   test("current state is loading then should log warning", () => {
     mraid.notifyExpanded();
 
-    verify(
-      logger.log(LogLevel.Warning, "notifyExpanded()", anyString())
-    ).once();
+    verify(logger.log(LogLevel.Warning, "notifyExpanded", anyString())).once();
   });
 
   test("current state is hidden then should log warning", () => {
@@ -319,9 +315,7 @@ describe("when notifyExpanded", () => {
 
     mraid.notifyExpanded();
 
-    verify(
-      logger.log(LogLevel.Warning, "notifyExpanded()", anyString())
-    ).once();
+    verify(logger.log(LogLevel.Warning, "notifyExpanded", anyString())).once();
   });
 });
 
@@ -329,7 +323,7 @@ describe("when notifyClosed()", () => {
   test("current state is loading then should log warning", () => {
     mraid.notifyClosed();
 
-    verify(logger.log(LogLevel.Warning, "notifyClosed()", anyString())).once();
+    verify(logger.log(LogLevel.Warning, "notifyClosed", anyString())).once();
   });
 
   test("current state is hidden then should log warning", () => {
@@ -338,7 +332,7 @@ describe("when notifyClosed()", () => {
 
     mraid.notifyClosed();
 
-    verify(logger.log(LogLevel.Warning, "notifyClosed()", anyString())).once();
+    verify(logger.log(LogLevel.Warning, "notifyClosed", anyString())).once();
   });
 
   test("current state is expanded then should change state to default", () => {
