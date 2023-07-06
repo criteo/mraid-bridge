@@ -189,6 +189,22 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     }
   }
 
+  createCalendarEvent(parameters: Anything): void {
+    this.logger.log(
+      LogLevel.Error,
+      "createCalendarEvent",
+      "createCalendarEvent() is not supported"
+    );
+  }
+
+  storePicture(uri: Anything): void {
+    this.logger.log(
+      LogLevel.Error,
+      "storePicture",
+      "storePicture() is not supported"
+    );
+  }
+
   // #endregion
 
   // #region SDKApi
