@@ -36,7 +36,7 @@ export class EventsCoordinator {
     if (!event || !this.isCorrectEvent(event)) {
       logger(
         LogLevel.Error,
-        "addEventListener()",
+        "addEventListener",
         `Incorrect event when addEventListener.Type = ${typeof event}, value = ${event}`
       );
       return;
@@ -45,7 +45,7 @@ export class EventsCoordinator {
     if (!listener) {
       logger(
         LogLevel.Error,
-        "addEventListener()",
+        "addEventListener",
         `Incorrect listener when addEventListener. It is null or undefined`
       );
       return;
@@ -54,7 +54,7 @@ export class EventsCoordinator {
     if (!isFunction(listener)) {
       logger(
         LogLevel.Error,
-        "addEventListener()",
+        "addEventListener",
         `Incorrect listener when addEventListener. 
         Listener is not a function. Actual type = ${typeof listener}`
       );
@@ -72,7 +72,7 @@ export class EventsCoordinator {
     if (!event || !this.isCorrectEvent(event)) {
       logger(
         LogLevel.Error,
-        "removeEventListener()",
+        "removeEventListener",
         `Incorrect event when removeEventListener.Type = ${typeof event}, value = ${event}`
       );
       return;
@@ -81,7 +81,7 @@ export class EventsCoordinator {
     if (listener && !isFunction(listener)) {
       logger(
         LogLevel.Error,
-        "removeEventListener()",
+        "removeEventListener",
         `Incorrect listener when removeEventListener. 
         Listener is not a function. Actual type = ${typeof listener}`
       );

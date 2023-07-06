@@ -58,7 +58,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     } catch (e) {
       this.logger.log(
         LogLevel.Error,
-        "addEventListener()",
+        "addEventListener",
         `error when addEventListener, event = ${event}, listenerType = ${typeof listener}`
       );
     }
@@ -77,7 +77,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     } catch (e) {
       this.logger.log(
         LogLevel.Error,
-        "removeEventListener()",
+        "removeEventListener",
         `error when removeEventListener, event = ${event}, listenerType = ${typeof listener}`
       );
     }
@@ -99,25 +99,21 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     if (!this.canPerformActions()) {
       this.logger.log(
         LogLevel.Error,
-        "expand()",
+        "expand",
         `can't expand in ${this.currentState} state`
       );
       return;
     }
 
     if (this.placementType === MraidPlacementType.Interstitial) {
-      this.logger.log(
-        LogLevel.Error,
-        "expand()",
-        "can't expand interstitial ad"
-      );
+      this.logger.log(LogLevel.Error, "expand", "can't expand interstitial ad");
       return;
     }
 
     if (url != null) {
       this.logger.log(
         LogLevel.Error,
-        "expand()",
+        "expand",
         "two-part expandable ads are not supported"
       );
     } else {
@@ -161,8 +157,8 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
 
   useCustomClose(useCustomClose: boolean) {
     this.logger.log(
-      LogLevel.Warning,
-      "useCustomClose()",
+      LogLevel.Error,
+      "useCustomClose",
       "useCustomClose() is not supported"
     );
   }
@@ -176,14 +172,14 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
       } else {
         this.logger.log(
           LogLevel.Error,
-          "open()",
+          "open",
           "Error when open(), url is not a string"
         );
       }
     } else {
       this.logger.log(
         LogLevel.Error,
-        "open()",
+        "open",
         "Error when open(), url is null, empty or undefined"
       );
     }
@@ -212,7 +208,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   notifyReady(placementType: MraidPlacementType) {
     this.logger.log(
       LogLevel.Debug,
-      "notifyReady()",
+      "notifyReady",
       `placementType=${placementType}`
     );
     this.placementType = placementType;
@@ -226,7 +222,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   setIsViewable(isViewable: boolean) {
     this.logger.log(
       LogLevel.Debug,
-      "setIsViewable()",
+      "setIsViewable",
       `isViewable=${isViewable}`
     );
     if (this.isCurrentlyViewable !== isViewable) {
@@ -245,7 +241,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     if (!this.canPerformActions()) {
       this.logger.log(
         LogLevel.Warning,
-        "notifyClosed()",
+        "notifyClosed",
         `can't close in ${this.currentState} state`
       );
       return;
@@ -265,7 +261,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
       case MraidState.Expanded:
         this.logger.log(
           LogLevel.Warning,
-          "notifyExpanded()",
+          "notifyExpanded",
           "ad is already expanded"
         );
         break;
@@ -273,7 +269,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
       case MraidState.Hidden:
         this.logger.log(
           LogLevel.Warning,
-          "notifyExpanded()",
+          "notifyExpanded",
           `can't expand from ${this.currentState}`
         );
         break;
@@ -317,7 +313,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
       if (useCustomClose) {
         this.logger.log(
           LogLevel.Warning,
-          "setExpandProperties()",
+          "setExpandProperties",
           "useCustomClose is not supported"
         );
       }
@@ -325,7 +321,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
       if (isModal != null && !isModal) {
         this.logger.log(
           LogLevel.Warning,
-          "setExpandProperties()",
+          "setExpandProperties",
           "isModal property is readonly and always equals to true"
         );
       }
@@ -333,7 +329,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     }
     this.logger.log(
       LogLevel.Error,
-      "setExpandProperties()",
+      "setExpandProperties",
       `properties is ${properties}`
     );
     return false;
@@ -344,7 +340,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
       if (!isNumber(dimension)) {
         this.logger.log(
           LogLevel.Error,
-          "setExpandProperties()",
+          "setExpandProperties",
           `width is not a number, width is ${typeof dimension}`
         );
         return false;
@@ -352,7 +348,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
       if (!this.isInAcceptedBounds(dimension)) {
         this.logger.log(
           LogLevel.Error,
-          "setExpandProperties()",
+          "setExpandProperties",
           `width is ${dimension}`
         );
         return false;
