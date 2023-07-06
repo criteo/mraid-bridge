@@ -35,8 +35,8 @@ test("when create mraid object given no interactions should have loading state",
   expect(mraid.getState()).toBe(MraidState.Loading);
 });
 
-test("when getVersion should return 1.0", () => {
-  expect(mraid.getVersion()).toBe("1.0");
+test("when getVersion should return 2.0", () => {
+  expect(mraid.getVersion()).toBe("2.0");
 });
 
 test("when addEventListener should delegate to EventsCoordinator", () => {
