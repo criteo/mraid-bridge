@@ -2,6 +2,7 @@ import { MraidEvent, MraidEventListener } from "./events";
 import { MraidState } from "./state";
 import { Anything, Url } from "./utils";
 import { ExpandProperties } from "./expand";
+import { Size } from "./size";
 
 export interface MRAIDApi {
   /**
@@ -134,4 +135,21 @@ export interface MRAIDApi {
    * Since 2.0
    */
   storePicture(uri: Anything): void;
+
+  /**
+   * @returns the maximum size (in density-independent pixel width and
+   * height) an ad can expand or resize to.
+   *
+   * Since 2.0
+   */
+  getMaxSize(): Size;
+
+  /**
+   * @returns the current actual pixel width and height, based on the
+   * current orientation, in density-independent pixels, of the device
+   * on which the ad is running
+   *
+   * Since 2.0
+   */
+  getScreenSize(): Size;
 }

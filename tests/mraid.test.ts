@@ -364,3 +364,59 @@ test("when storePicture then should log error", () => {
 
   verify(logger.log(LogLevel.Error, "storePicture", anyString())).once();
 });
+
+describe("when setMaxSize", () => {
+  test("and then getMaxSize should return same values", () => {
+    const width = 222;
+    const height = 322;
+
+    mraid.setMaxSize(width, height, 1);
+
+    const maxSize = mraid.getMaxSize();
+
+    expect(maxSize.width).toBe(width);
+    expect(maxSize.height).toBe(height);
+  });
+
+  test("and then getMaxSize, modify return object and getMaxSize should not modify returned object", () => {
+    const width = 222;
+    const height = 322;
+
+    mraid.setMaxSize(width, height, 1);
+
+    let maxSize = mraid.getMaxSize();
+    maxSize.width = 111;
+    maxSize = mraid.getMaxSize();
+
+    expect(maxSize.width).toBe(width);
+    expect(maxSize.height).toBe(height);
+  });
+});
+
+describe("when setScreenSize", () => {
+  test("and then getScreenSize should return same values", () => {
+    const width = 222;
+    const height = 322;
+
+    mraid.setScreenSize(width, height);
+
+    const screenSize = mraid.getScreenSize();
+
+    expect(screenSize.width).toBe(width);
+    expect(screenSize.height).toBe(height);
+  });
+
+  test("and then getScreenSize, modify return object and getScreenSize should not modify returned object", () => {
+    const width = 222;
+    const height = 322;
+
+    mraid.setScreenSize(width, height);
+
+    let maxSize = mraid.getScreenSize();
+    maxSize.width = 111;
+    maxSize = mraid.getScreenSize();
+
+    expect(maxSize.width).toBe(width);
+    expect(maxSize.height).toBe(height);
+  });
+});
