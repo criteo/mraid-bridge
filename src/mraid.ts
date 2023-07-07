@@ -34,6 +34,8 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
 
   private currentMaxSize = new Size(0, 0);
 
+  private currentScreenSize = new Size(0, 0);
+
   private pixelMultiplier = 1;
 
   constructor(
@@ -201,6 +203,14 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     );
   }
 
+  getMaxSize(): Size {
+    return this.currentMaxSize.clone();
+  }
+
+  getScreenSize(): Size {
+    return this.currentScreenSize.clone();
+  }
+
   // #endregion
 
   // #region SDKApi
@@ -235,6 +245,11 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     this.currentMaxSize.width = width;
     this.currentMaxSize.height = height;
     this.pixelMultiplier = pixelMultiplier;
+  }
+
+  setScreenSize(width: number, height: number): void {
+    this.currentScreenSize.width = width;
+    this.currentScreenSize.height = height;
   }
 
   notifyClosed(): void {

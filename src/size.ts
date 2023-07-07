@@ -9,6 +9,10 @@ export class Size {
    */
   height: number;
 
+  clone(): Size {
+    return new Size(this.width, this.height);
+  }
+
   constructor(width: number, height: number) {
     this.width = width;
     this.height = height;

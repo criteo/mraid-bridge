@@ -29,7 +29,7 @@ export interface SDKApi {
   /**
    * Report mraid object about max available size ad can expand to
    *
-   * SDK should report this before invoking notifyReady and
+   * SDK should report this before invoking {@link notifyReady} and
    * every time max available size changes(orientation change, app resize etc.)
    *
    * @param width in density-independent pixels
@@ -38,6 +38,19 @@ export interface SDKApi {
    * widthInPixels = width * pixelMultiplier
    */
   setMaxSize(width: number, height: number, pixelMultiplier: number): void;
+
+  /**
+   * Report mraid object about screen size of a device. This includes
+   * area reserved by system (status bars, navigation bars etc.).
+   * Screen size will change if device is turned from portrait to
+   * landscape.
+   *
+   * SDK should report this before invoking {@link notifyReady}.
+   *
+   * @param width in density-independent pixels
+   * @param height in density-independent pixels
+   */
+  setScreenSize(width: number, height: number): void;
 
   /**
    * Report mraid object about successful expand
