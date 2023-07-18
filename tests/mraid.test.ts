@@ -14,16 +14,23 @@ import { SdkInteractor } from "../src/mraidbridge/sdkinteractor";
 import { LogLevel } from "../src/log/loglevel";
 import { defaultPropertiesValue, ExpandProperties } from "../src/expand";
 import { Logger } from "../src/log/logger";
+import {} from "../src/mraidwindow";
 
 let mraid: MRAIDImplementation;
 let eventsCoordinator: EventsCoordinator;
 let sdkInteractor: SdkInteractor;
 let logger: Logger;
+let contentWindow: Window;
 
 beforeEach(() => {
   eventsCoordinator = mock(EventsCoordinator);
   sdkInteractor = mock(SdkInteractor);
   logger = mock(Logger);
+
+  const frame = document.createElement("iframe");
+  document.body.appendChild(frame);
+  contentWindow = frame.contentWindow as Window;
+
   mraid = new MRAIDImplementation(
     instance(eventsCoordinator),
     instance(sdkInteractor),
@@ -33,6 +40,10 @@ beforeEach(() => {
 
 test("when create mraid object given no interactions should have loading state", () => {
   expect(mraid.getState()).toBe(MraidState.Loading);
+});
+
+test("when create mraid object sub content window should share the same instance of mraid object", () => {
+  expect(mraid).toBe(contentWindow.mraid);
 });
 
 test("when getVersion should return 2.0", () => {
@@ -70,6 +81,7 @@ describe("when notifyReady", () => {
 
   test("should change state to default", () => {
     expect(mraid.getState()).toBe(MraidState.Default);
+    expect(contentWindow.mraid.getState()).toBe(MraidState.Default);
   });
 
   test("should fireStateChangeEvent on EventsCoordinator", () => {
