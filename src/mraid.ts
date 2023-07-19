@@ -13,6 +13,7 @@ import {
 } from "./expand";
 import { Size } from "./size";
 import { Logger } from "./log/logger";
+import {} from "./mraidwindow";
 
 export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private eventsCoordinator: EventsCoordinator;
@@ -44,6 +45,22 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     this.eventsCoordinator = eventsCoordinator;
     this.sdkInteractor = sdkInteractor;
     this.logger = logger;
+
+    const isTopFrame = window === window.top;
+
+    if (isTopFrame) {
+      const iframes = document.getElementsByTagName("iframe");
+      for (let i = 0; i < iframes.length; i += 1) {
+        const iframe = iframes[i];
+        if (iframe.contentWindow) {
+          try {
+            iframe.contentWindow.mraid = this;
+          } catch {
+            // Dummy catch as some frames might be configured to disallow cross origin access
+          }
+        }
+      }
+    }
   }
 
   // #region MRAID Api
