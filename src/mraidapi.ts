@@ -3,6 +3,7 @@ import { MraidState } from "./state";
 import { Anything, Url } from "./utils";
 import { ExpandProperties } from "./expand";
 import { Size } from "./size";
+import { SdkFeature } from "./sdkfeature";
 
 export interface MRAIDApi {
   /**
@@ -152,4 +153,14 @@ export interface MRAIDApi {
    * Since 2.0
    */
   getScreenSize(): Size;
+
+  /**
+   * The supports method allows the ad to interrogate the device for support
+   * of specific features
+   * @returns if feature is supported by SDK/device
+   *
+   * {@link SdkFeature.Calendar} and {@link SdkFeature.StorePicture} will always
+   * return false and not supported by Criteo SDK
+   */
+  supports(feature: SdkFeature | Anything): boolean;
 }

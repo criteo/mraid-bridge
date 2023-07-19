@@ -14,6 +14,13 @@ import {
 import { Size } from "./size";
 import { Logger } from "./log/logger";
 import {} from "./mraidwindow";
+import {
+  defaultSupportedSdkFeatures,
+  isSdkFeature,
+  joinedSdkFeatures,
+  SdkFeature,
+  SupportedSdkFeatures,
+} from "./sdkfeature";
 
 export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private eventsCoordinator: EventsCoordinator;
@@ -38,6 +45,8 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private currentScreenSize = new Size(0, 0);
 
   private pixelMultiplier = 1;
+
+  private supportedSdkFeatures = defaultSupportedSdkFeatures;
 
   constructor(
     eventsCoordinator: EventsCoordinator,
@@ -214,6 +223,20 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     return this.currentScreenSize.clone();
   }
 
+  supports(feature: SdkFeature | Anything): boolean {
+    if (isSdkFeature(feature)) {
+      type ObjectKey = keyof typeof this.supportedSdkFeatures;
+      const featureVar = feature as ObjectKey;
+      return this.supportedSdkFeatures[featureVar];
+    }
+    this.logger.log(
+      LogLevel.Error,
+      "supports",
+      `Feature param is not one of ${joinedSdkFeatures()}`
+    );
+    return false;
+  }
+
   // #endregion
 
   // #region SDKApi
@@ -293,6 +316,15 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
         break;
       default:
     }
+  }
+
+  setSupports(supportedSdkFeatures: SupportedSdkFeatures | Anything): void {
+    this.supportedSdkFeatures.sms =
+      supportedSdkFeatures.sms ?? this.supportedSdkFeatures.sms;
+    this.supportedSdkFeatures.tel =
+      supportedSdkFeatures.tel ?? this.supportedSdkFeatures.tel;
+    this.supportedSdkFeatures.inlineVideo =
+      supportedSdkFeatures.inlineVideo ?? this.supportedSdkFeatures.inlineVideo;
   }
 
   // #endregion

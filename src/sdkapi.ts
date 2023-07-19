@@ -1,5 +1,6 @@
 import { MraidPlacementType } from "./placement";
-import { SafeString } from "./utils";
+import { Anything, SafeString } from "./utils";
+import { SupportedSdkFeatures } from "./sdkfeature";
 
 /**
  * API for SDK to communicate with mraid object
@@ -61,4 +62,11 @@ export interface SDKApi {
    * Report mraid object about successful close
    */
   notifyClosed(): void;
+
+  /**
+   * Report mraid object about features supported by current device
+   * SDK should only report tel, sms and inline video support.
+   * storePicture and calendar are out of scope.
+   */
+  setSupports(supportedSdkFeatures: SupportedSdkFeatures | Anything): void;
 }
