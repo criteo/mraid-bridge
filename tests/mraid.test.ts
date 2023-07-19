@@ -15,6 +15,7 @@ import { LogLevel } from "../src/log/loglevel";
 import { defaultPropertiesValue, ExpandProperties } from "../src/expand";
 import { Logger } from "../src/log/logger";
 import {} from "../src/mraidwindow";
+import { SdkFeature } from "../src/sdkfeature";
 
 let mraid: MRAIDImplementation;
 let eventsCoordinator: EventsCoordinator;
@@ -440,5 +441,41 @@ describe("when setScreenSize", () => {
 
     expect(maxSize.width).toBe(width);
     expect(maxSize.height).toBe(height);
+  });
+});
+
+describe("when supports", () => {
+  it.each(Object.values(SdkFeature))(
+    "%p and setSupports never called should return false",
+    (feature) => {
+      expect(mraid.supports(feature)).toBe(false);
+    }
+  );
+
+  test("and supported properties are set to true then should return true for supported properties", () => {
+    mraid.setSupports({
+      sms: true,
+      tel: true,
+      inlineVideo: true,
+    });
+
+    expect(mraid.supports("sms")).toBe(true);
+    expect(mraid.supports("tel")).toBe(true);
+    expect(mraid.supports("inlineVideo")).toBe(true);
+  });
+
+  test("and set unsupported properties should return false", () => {
+    mraid.setSupports({
+      calendar: true,
+      storePicture: true,
+    });
+
+    expect(mraid.supports("calendar")).toBe(false);
+    expect(mraid.supports("storePicture")).toBe(false);
+  });
+
+  test("for random non mraid feature should return false and log error", () => {
+    expect(mraid.supports("fancyfeature")).toBe(false);
+    verify(logger.log(LogLevel.Error, "supports", anyString())).once();
   });
 });
