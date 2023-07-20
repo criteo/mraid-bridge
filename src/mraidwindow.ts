@@ -3,6 +3,6 @@ import { SDKApi } from "./sdkapi";
 
 declare global {
   interface Window {
-    mraid: MRAIDApi & SDKApi;
+    mraid?: MRAIDApi & SDKApi;
   }
 }

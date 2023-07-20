@@ -31,18 +31,24 @@ export declare interface CriteoInterface {
 
 export class AndroidMraidBridge implements MraidBridge {
   log(logLevel: LogLevel, message: string, logId: string | null): void {
-    window?.criteoMraidBridge?.log(logLevel, message, logId);
+    this.getMraidBridge()?.log(logLevel, message, logId);
   }
 
   open(url: string): void {
-    window?.criteoMraidBridge?.open(url);
+    this.getMraidBridge()?.open(url);
   }
 
   expand(width: number, height: number): void {
-    window?.criteoMraidBridge?.expand(width, height);
+    this.getMraidBridge()?.expand(width, height);
   }
 
   close(): void {
-    window?.criteoMraidBridge?.close();
+    this.getMraidBridge()?.close();
+  }
+
+  private getMraidBridge(): CriteoInterface | undefined | null {
+    // criteoMraidBridge object is not injected into iframe on Android
+    // but doc says it should be. It is always available on topmost window
+    return window?.criteoMraidBridge ?? window?.top?.criteoMraidBridge;
   }
 }
