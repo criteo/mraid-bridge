@@ -46,8 +46,18 @@ test("when create mraid object sub content window should share the same instance
   expect(mraid).toBe(contentWindow.mraid);
 });
 
-test("when getVersion should return 2.0", () => {
-  expect(mraid.getVersion()).toBe("2.0");
+test("when create mraid object in sub window main window should have the same instance of mraid object", () => {
+  window.mraid = undefined;
+  contentWindow.mraid = new MRAIDImplementation(
+    instance(eventsCoordinator),
+    instance(sdkInteractor),
+    instance(logger)
+  );
+  expect(window.mraid).toBe(contentWindow.mraid);
+});
+
+test("when getVersion should return 1.0", () => {
+  expect(mraid.getVersion()).toBe("1.0");
 });
 
 test("when addEventListener should delegate to EventsCoordinator", () => {
@@ -81,7 +91,7 @@ describe("when notifyReady", () => {
 
   test("should change state to default", () => {
     expect(mraid.getState()).toBe(MraidState.Default);
-    expect(contentWindow.mraid.getState()).toBe(MraidState.Default);
+    expect(contentWindow.mraid?.getState()).toBe(MraidState.Default);
   });
 
   test("should fireStateChangeEvent on EventsCoordinator", () => {

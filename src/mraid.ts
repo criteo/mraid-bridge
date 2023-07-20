@@ -48,21 +48,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     this.sdkInteractor = sdkInteractor;
     this.logger = logger;
 
-    const isTopFrame = window === window.top;
-
-    if (isTopFrame) {
-      const iframes = document.getElementsByTagName("iframe");
-      for (let i = 0; i < iframes.length; i += 1) {
-        const iframe = iframes[i];
-        if (iframe.contentWindow) {
-          try {
-            iframe.contentWindow.mraid = this;
-          } catch {
-            // Dummy catch as some frames might be configured to disallow cross origin access
-          }
-        }
-      }
-    }
+    this.spreadMraidInstance();
   }
 
   // #region MRAID Api
@@ -393,5 +379,26 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
 
   private isInAcceptedBounds(number: number): boolean {
     return Number.isFinite(number) && number >= 0;
+  }
+
+  private spreadMraidInstance() {
+    const iframes = document.getElementsByTagName("iframe");
+    for (let i = 0; i < iframes.length; i += 1) {
+      const iframe = iframes[i];
+      if (iframe.contentWindow) {
+        try {
+          iframe.contentWindow.mraid = iframe.contentWindow.mraid ?? this;
+        } catch {
+          // Dummy catch as some frames might be configured to disallow cross origin access
+        }
+      }
+    }
+    if (window.top) {
+      try {
+        window.top.mraid = window.top.mraid ?? this;
+      } catch {
+        // Dummy catch as some frames might be configured to disallow cross origin access
+      }
+    }
   }
 }
