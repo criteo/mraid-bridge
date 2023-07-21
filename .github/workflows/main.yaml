@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - release/v*.*.* # Version branches such as v1.0.1
   pull_request:
     branches:
       - main
@@ -35,7 +36,7 @@ jobs:
   publish-snapshot-to-sonatype:
     name: Publish SNAPSHOT artifact to Sonatype
     runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' # Only deploy on merge
 
     needs: 
       - lint
