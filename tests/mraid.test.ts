@@ -56,8 +56,8 @@ test("when create mraid object in sub window main window should have the same in
   expect(window.mraid).toBe(contentWindow.mraid);
 });
 
-test("when getVersion should return 1.0", () => {
-  expect(mraid.getVersion()).toBe("1.0");
+test("when getVersion should return 2.0", () => {
+  expect(mraid.getVersion()).toBe("2.0");
 });
 
 test("when addEventListener should delegate to EventsCoordinator", () => {
