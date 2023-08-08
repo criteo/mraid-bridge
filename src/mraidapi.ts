@@ -4,6 +4,7 @@ import { Anything, Url } from "./utils";
 import { ExpandProperties } from "./expand";
 import { Size } from "./size";
 import { SdkFeature } from "./sdkfeature";
+import { Position } from "./position";
 
 export interface MRAIDApi {
   /**
@@ -163,4 +164,16 @@ export interface MRAIDApi {
    * return false and not supported by Criteo SDK
    */
   supports(feature: SdkFeature | Anything): boolean;
+
+  /**
+   * @returns current position and size of the ad view,
+   * measured in density-independent pixels.
+   */
+  getCurrentPosition(): Position;
+
+  /**
+   * @returns position and size of the default ad view, measured in
+   * density-independent pixels, regardless of what state the calling view is in.
+   */
+  getDefaultPosition(): Position;
 }

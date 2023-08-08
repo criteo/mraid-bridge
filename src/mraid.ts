@@ -13,7 +13,6 @@ import {
 } from "./expand";
 import { Size } from "./size";
 import { Logger } from "./log/logger";
-import {} from "./mraidwindow";
 import {
   defaultSupportedSdkFeatures,
   isSdkFeature,
@@ -21,6 +20,7 @@ import {
   SdkFeature,
   SupportedSdkFeatures,
 } from "./sdkfeature";
+import { initialPosition, Position } from "./position";
 
 export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private eventsCoordinator: EventsCoordinator;
@@ -47,6 +47,10 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private pixelMultiplier = 1;
 
   private supportedSdkFeatures = defaultSupportedSdkFeatures;
+
+  private defaultPosition = initialPosition.clone();
+
+  private currentPosition = initialPosition.clone();
 
   constructor(
     eventsCoordinator: EventsCoordinator,
@@ -237,6 +241,14 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     return false;
   }
 
+  getCurrentPosition(): Position {
+    return this.currentPosition.clone();
+  }
+
+  getDefaultPosition(): Position {
+    return this.defaultPosition.clone();
+  }
+
   // #endregion
 
   // #region SDKApi
@@ -325,6 +337,21 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
       supportedSdkFeatures.tel ?? this.supportedSdkFeatures.tel;
     this.supportedSdkFeatures.inlineVideo =
       supportedSdkFeatures.inlineVideo ?? this.supportedSdkFeatures.inlineVideo;
+  }
+
+  setCurrentPosition(
+    x: number,
+    y: number,
+    width: number,
+    height: number
+  ): void {
+    const newPosition = new Position(x, y, width, height);
+    if (
+      JSON.stringify(this.defaultPosition) === JSON.stringify(initialPosition)
+    ) {
+      this.defaultPosition = newPosition;
+    }
+    this.currentPosition = newPosition;
   }
 
   // #endregion
