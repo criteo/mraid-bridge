@@ -46,3 +46,10 @@ test("when call close should delegate to every MraidBridge object", () => {
 
   mraidBridges.forEach((bridge) => verify(bridge.close()).once());
 });
+
+test("when call playVideo should delegate to every MraidBridge object", () => {
+  const url = "https://criteo.com/funny_cat_video.mp4";
+  sdkInteractor.playVideo(url);
+
+  mraidBridges.forEach((bridge) => verify(bridge.playVideo(url)).once());
+});

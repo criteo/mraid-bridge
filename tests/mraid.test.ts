@@ -540,3 +540,35 @@ describe("when getDefaultPosition", () => {
     expect(mraid.getDefaultPosition()).toEqual(initialPosition);
   });
 });
+
+describe("when playVideo", () => {
+  test("with valid string then should delegate to SdkInteractor.playVideo", () => {
+    const url = "https://criteo.com/funny_cat_video.mp4";
+
+    mraid.playVideo(url);
+
+    verify(sdkInteractor.playVideo(url)).once();
+  });
+
+  test("with valid URL then should delegate to SdkInteractor.playVideo", () => {
+    const urlString = "https://criteo.com/funny_cat_video.mp4";
+    const url = new URL(urlString);
+
+    mraid.playVideo(url);
+
+    verify(sdkInteractor.playVideo(urlString)).once();
+  });
+
+  test("with empty string then should log error", () => {
+    mraid.playVideo("");
+    verify(logger.log(LogLevel.Error, "playVideo", anyString())).once();
+  });
+
+  it.each([null, undefined, 1, true, () => {}, new Set()])(
+    "with %p then should log error",
+    (notAString) => {
+      mraid.playVideo(notAString);
+      verify(logger.log(LogLevel.Error, "playVideo", anyString())).once();
+    }
+  );
+});

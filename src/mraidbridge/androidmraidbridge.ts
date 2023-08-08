@@ -27,6 +27,7 @@ export declare interface CriteoInterface {
   open(url: string): void;
   expand(width: number, height: number): void;
   close(): void;
+  playVideo(url: string): void;
 }
 
 export class AndroidMraidBridge implements MraidBridge {
@@ -44,6 +45,10 @@ export class AndroidMraidBridge implements MraidBridge {
 
   close(): void {
     this.getMraidBridge()?.close();
+  }
+
+  playVideo(url: string): void {
+    this.getMraidBridge()?.playVideo(url);
   }
 
   private getMraidBridge(): CriteoInterface | undefined | null {

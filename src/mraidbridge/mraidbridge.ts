@@ -9,4 +9,5 @@ export interface MraidBridge {
   open(url: string): void;
   expand(width: number, height: number): void;
   close(): void;
+  playVideo(url: string): void;
 }

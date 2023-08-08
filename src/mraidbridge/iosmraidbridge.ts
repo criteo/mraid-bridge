@@ -46,6 +46,10 @@ export declare interface ExpandIosMessage extends IosMessage {
 
 export type CloseIosMessage = IosMessage;
 
+export declare interface PlayVideoIosMessage extends IosMessage {
+  url: string;
+}
+
 // #endregion
 
 export class IosMraidBridge implements MraidBridge {
@@ -81,6 +85,14 @@ export class IosMraidBridge implements MraidBridge {
       action: "close",
     };
     this.postMessage(closeMessage);
+  }
+
+  playVideo(url: string): void {
+    const playVideoMessage: PlayVideoIosMessage = {
+      action: "play_video",
+      url,
+    };
+    this.postMessage(playVideoMessage);
   }
 
   private postMessage(message: IosMessage) {

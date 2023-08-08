@@ -45,3 +45,10 @@ test("when call close should delegate to criteoMraidBridge on window", () => {
 
   verify(androidBridge.close()).once();
 });
+
+test("when call playVideo should delegate to criteoMraidBridge on window", () => {
+  const url = "https://criteo.com/funny_cat_video.mp4";
+  androidMraidBridge.playVideo(url);
+
+  verify(androidBridge.playVideo(url)).once();
+});
