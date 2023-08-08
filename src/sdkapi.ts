@@ -69,4 +69,16 @@ export interface SDKApi {
    * storePicture and calendar are out of scope.
    */
   setSupports(supportedSdkFeatures: SupportedSdkFeatures | Anything): void;
+
+  /**
+   * Report current position of ad container in view hierarchy.
+   *
+   * @param x - number of density-independent pixels offset
+   * from left of getMaxSize()
+   * @param y - number of density-independent pixels offset from top of
+   * getMaxSize()
+   * @param width - current width of container in density-independent pixels
+   * @param height - current height of container in density-independent pixels
+   */
+  setCurrentPosition(x: number, y: number, width: number, height: number): void;
 }

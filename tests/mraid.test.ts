@@ -16,6 +16,7 @@ import { defaultPropertiesValue, ExpandProperties } from "../src/expand";
 import { Logger } from "../src/log/logger";
 import {} from "../src/mraidwindow";
 import { SdkFeature } from "../src/sdkfeature";
+import { initialPosition, Position } from "../src/position";
 
 let mraid: MRAIDImplementation;
 let eventsCoordinator: EventsCoordinator;
@@ -477,5 +478,65 @@ describe("when supports", () => {
   test("for random non mraid feature should return false and log error", () => {
     expect(mraid.supports("fancyfeature")).toBe(false);
     verify(logger.log(LogLevel.Error, "supports", anyString())).once();
+  });
+});
+
+describe("when getCurrentPosition", () => {
+  test("should return initial position", () => {
+    expect(mraid.getCurrentPosition()).toEqual(initialPosition);
+  });
+
+  test("and setCurrentPosition should return set position", () => {
+    mraid.setCurrentPosition(1, 1, 1, 1);
+
+    const expectedPosition = new Position(1, 1, 1, 1);
+
+    expect(mraid.getCurrentPosition()).toEqual(expectedPosition);
+  });
+
+  test("and setCurrentPostion 2 times should return most recent value", () => {
+    mraid.setCurrentPosition(1, 1, 1, 1);
+    mraid.setCurrentPosition(2, 2, 2, 2);
+
+    const expectedPosition = new Position(2, 2, 2, 2);
+
+    expect(mraid.getCurrentPosition()).toEqual(expectedPosition);
+  });
+
+  test("modify value and getCurrentPosition again should not modify returned object", () => {
+    const currentPosition = mraid.getCurrentPosition();
+    currentPosition.width = 123;
+
+    expect(mraid.getCurrentPosition()).toEqual(initialPosition);
+  });
+});
+
+describe("when getDefaultPosition", () => {
+  test("should return initial position", () => {
+    expect(mraid.getDefaultPosition()).toEqual(initialPosition);
+  });
+
+  test("and setCurrentPosition should return set position", () => {
+    mraid.setCurrentPosition(1, 1, 1, 1);
+
+    const expectedPosition = new Position(1, 1, 1, 1);
+
+    expect(mraid.getDefaultPosition()).toEqual(expectedPosition);
+  });
+
+  test("and setCurrentPostion 2 times should return first set value", () => {
+    mraid.setCurrentPosition(1, 1, 1, 1);
+    mraid.setCurrentPosition(2, 2, 2, 2);
+
+    const expectedPosition = new Position(1, 1, 1, 1);
+
+    expect(mraid.getDefaultPosition()).toEqual(expectedPosition);
+  });
+
+  test("modify value and getDefaultPosition again should not modify returned object", () => {
+    const defaultPosition = mraid.getDefaultPosition();
+    defaultPosition.width = 123;
+
+    expect(mraid.getDefaultPosition()).toEqual(initialPosition);
   });
 });
