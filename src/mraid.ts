@@ -249,6 +249,28 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     return this.defaultPosition.clone();
   }
 
+  playVideo(url: Url | Anything): void {
+    if (url) {
+      if (typeof url === "string") {
+        this.sdkInteractor.playVideo(url);
+      } else if (url instanceof URL) {
+        this.sdkInteractor.playVideo(url.toString());
+      } else {
+        this.logger.log(
+          LogLevel.Error,
+          "playVideo",
+          "Error when playVideo(), url is not a string"
+        );
+      }
+    } else {
+      this.logger.log(
+        LogLevel.Error,
+        "playVideo",
+        "Error when playVideo(), url is null, empty or undefined"
+      );
+    }
+  }
+
   // #endregion
 
   // #region SDKApi

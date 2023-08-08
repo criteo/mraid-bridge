@@ -176,4 +176,11 @@ export interface MRAIDApi {
    * density-independent pixels, regardless of what state the calling view is in.
    */
   getDefaultPosition(): Position;
+
+  /**
+   * Use this method to play a video on the device via the device’s native, external player
+   *
+   * @param url - the URI of the video or video stream
+   */
+  playVideo(url: Url | Anything): void;
 }

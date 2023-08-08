@@ -9,6 +9,7 @@ import {
   OpenIosMessage,
   ExpandIosMessage,
   CloseIosMessage,
+  PlayVideoIosMessage,
 } from "../../src/mraidbridge/iosmraidbridge";
 
 let iosMraidBridge: IosMraidBridge;
@@ -83,6 +84,19 @@ test("when call close should delegate to criteoMraidBridge on window", () => {
 
   const expectedMessage: CloseIosMessage = {
     action: "close",
+  };
+
+  const capturedMessage = capture(iosMessageHandler.postMessage).last()[0];
+  expect(capturedMessage).toStrictEqual(expectedMessage);
+});
+
+test("when call playVideo should delegate to criteoMraidBridge on window", () => {
+  const url = "https://criteo.com/funny_cat_video.mp4";
+  iosMraidBridge.playVideo(url);
+
+  const expectedMessage: PlayVideoIosMessage = {
+    action: "play_video",
+    url,
   };
 
   const capturedMessage = capture(iosMessageHandler.postMessage).last()[0];
