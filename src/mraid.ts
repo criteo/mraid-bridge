@@ -357,8 +357,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
       supportedSdkFeatures.sms ?? this.supportedSdkFeatures.sms;
     this.supportedSdkFeatures.tel =
       supportedSdkFeatures.tel ?? this.supportedSdkFeatures.tel;
-    this.supportedSdkFeatures.inlineVideo =
-      supportedSdkFeatures.inlineVideo ?? this.supportedSdkFeatures.inlineVideo;
+    this.supportedSdkFeatures.inlineVideo = this.isInlineVideoSupported();
   }
 
   setCurrentPosition(
@@ -481,5 +480,9 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
         // Dummy catch as some frames might be configured to disallow cross origin access
       }
     }
+  }
+
+  private isInlineVideoSupported(): boolean {
+    return typeof HTMLVideoElement !== "undefined";
   }
 }

@@ -457,7 +457,6 @@ describe("when supports", () => {
     mraid.setSupports({
       sms: true,
       tel: true,
-      inlineVideo: true,
     });
 
     expect(mraid.supports("sms")).toBe(true);
