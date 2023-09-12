@@ -1,19 +1,26 @@
 import { capture, instance, mock, when } from "ts-mockito";
 import { LogLevel } from "../../src/log/loglevel";
 import {
-  IosMraidBridge,
+  CloseIosMessage,
   CriteoMessageHandler,
+  ExpandIosMessage,
+  IosMessage,
+  IosMraidBridge,
   LogIosMessage,
-  Webkit,
   MessageHandlers,
   OpenIosMessage,
-  ExpandIosMessage,
-  CloseIosMessage,
   PlayVideoIosMessage,
+  ResizeIosMessage,
+  Webkit,
 } from "../../src/mraidbridge/iosmraidbridge";
+import { ClosePosition } from "../../src/resize";
 
 let iosMraidBridge: IosMraidBridge;
 let iosMessageHandler: CriteoMessageHandler;
+
+function captureLastMessage(): IosMessage {
+  return capture(iosMessageHandler.postMessage).last()[0];
+}
 
 beforeEach(() => {
   iosMraidBridge = new IosMraidBridge();
@@ -37,8 +44,6 @@ test("when call log should delegate to criteoMraidBridge on window", () => {
   const message = "Some fancy text";
   const logId = "id";
 
-  iosMraidBridge.log(logLevel, message, logId);
-
   const expectedMessage: LogIosMessage = {
     action: "log",
     logLevel,
@@ -46,59 +51,91 @@ test("when call log should delegate to criteoMraidBridge on window", () => {
     logId,
   };
 
-  const capturedMessage = capture(iosMessageHandler.postMessage).last()[0];
+  iosMraidBridge.log(logLevel, message, logId);
+
+  const capturedMessage = captureLastMessage();
   expect(capturedMessage).toStrictEqual(expectedMessage);
 });
 
 test("when call open should delegate to criteoMraidBridge on window", () => {
   const url = "https://www.criteo.com/";
 
-  iosMraidBridge.open(url);
-
   const expectedMessage: OpenIosMessage = {
     action: "open",
     url,
   };
 
-  const capturedMessage = capture(iosMessageHandler.postMessage).last()[0];
+  iosMraidBridge.open(url);
+
+  const capturedMessage = captureLastMessage();
   expect(capturedMessage).toStrictEqual(expectedMessage);
 });
 
 test("when call expand should delegate to criteoMraidBridge on window", () => {
   const width = 123;
   const height = 222;
-  iosMraidBridge.expand(width, height);
-
   const expectedMessage: ExpandIosMessage = {
     action: "expand",
     width,
     height,
   };
 
-  const capturedMessage = capture(iosMessageHandler.postMessage).last()[0];
+  iosMraidBridge.expand(width, height);
+
+  const capturedMessage = captureLastMessage();
   expect(capturedMessage).toStrictEqual(expectedMessage);
 });
 
 test("when call close should delegate to criteoMraidBridge on window", () => {
-  iosMraidBridge.close();
-
   const expectedMessage: CloseIosMessage = {
     action: "close",
   };
 
-  const capturedMessage = capture(iosMessageHandler.postMessage).last()[0];
+  iosMraidBridge.close();
+
+  const capturedMessage = captureLastMessage();
   expect(capturedMessage).toStrictEqual(expectedMessage);
 });
 
 test("when call playVideo should delegate to criteoMraidBridge on window", () => {
   const url = "https://criteo.com/funny_cat_video.mp4";
-  iosMraidBridge.playVideo(url);
-
   const expectedMessage: PlayVideoIosMessage = {
     action: "play_video",
     url,
   };
 
-  const capturedMessage = capture(iosMessageHandler.postMessage).last()[0];
+  iosMraidBridge.playVideo(url);
+
+  const capturedMessage = captureLastMessage();
+  expect(capturedMessage).toStrictEqual(expectedMessage);
+});
+
+test("when call resize should delegate to criteoMraidBridge on window", () => {
+  const width = 133;
+  const height = 444;
+  const offsetX = 13;
+  const offsetY = 0;
+  const customClosePosition = "center";
+  const allowOffscreen = true;
+  const expectedMessage: ResizeIosMessage = {
+    action: "resize",
+    width,
+    height,
+    offsetX,
+    offsetY,
+    customClosePosition,
+    allowOffscreen,
+  };
+
+  iosMraidBridge.resize(
+    width,
+    height,
+    offsetX,
+    offsetY,
+    ClosePosition.Center,
+    allowOffscreen
+  );
+
+  const capturedMessage = captureLastMessage();
   expect(capturedMessage).toStrictEqual(expectedMessage);
 });

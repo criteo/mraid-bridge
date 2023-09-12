@@ -1,4 +1,5 @@
 import { LogLevel } from "../log/loglevel";
+import { ClosePosition } from "../resize";
 
 /**
  * Defines API for interaction with native platforms (iOS and Android)
@@ -10,4 +11,12 @@ export interface MraidBridge {
   expand(width: number, height: number): void;
   close(): void;
   playVideo(url: string): void;
+  resize(
+    width: number,
+    height: number,
+    offsetX: number,
+    offsetY: number,
+    customClosePosition: ClosePosition,
+    allowOffscreen: boolean
+  ): void;
 }
