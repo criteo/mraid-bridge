@@ -2,6 +2,7 @@ import { instance, mock, verify } from "ts-mockito";
 import { SdkInteractor } from "../../src/mraidbridge/sdkinteractor";
 import { MraidBridge } from "../../src/mraidbridge/mraidbridge";
 import { LogLevel } from "../../src/log/loglevel";
+import { ClosePosition } from "../../src/resize";
 
 let sdkInteractor: SdkInteractor;
 let mraidBridges: MraidBridge[];
@@ -52,4 +53,35 @@ test("when call playVideo should delegate to every MraidBridge object", () => {
   sdkInteractor.playVideo(url);
 
   mraidBridges.forEach((bridge) => verify(bridge.playVideo(url)).once());
+});
+
+test("when call resize should delegate to every MraidBridge object", () => {
+  const width = 133;
+  const height = 444;
+  const offsetX = 13;
+  const offsetY = 0;
+  const customClosePosition = ClosePosition.BottomCenter;
+  const allowOffscreen = true;
+
+  sdkInteractor.resize(
+    width,
+    height,
+    offsetX,
+    offsetY,
+    customClosePosition,
+    allowOffscreen
+  );
+
+  mraidBridges.forEach((bridge) =>
+    verify(
+      bridge.resize(
+        width,
+        height,
+        offsetX,
+        offsetY,
+        customClosePosition,
+        allowOffscreen
+      )
+    ).once()
+  );
 });

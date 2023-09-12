@@ -1,5 +1,6 @@
 import { MraidBridge } from "./mraidbridge";
 import { LogLevel } from "../log/loglevel";
+import { ClosePosition } from "../resize";
 
 /**
  * Interaction object is defined in global scope (window) so we are using
@@ -28,6 +29,14 @@ export declare interface CriteoInterface {
   expand(width: number, height: number): void;
   close(): void;
   playVideo(url: string): void;
+  resize(
+    width: number,
+    height: number,
+    offsetX: number,
+    offsetY: number,
+    customClosePosition: string,
+    allowOffscreen: boolean
+  ): void;
 }
 
 export class AndroidMraidBridge implements MraidBridge {
@@ -49,6 +58,24 @@ export class AndroidMraidBridge implements MraidBridge {
 
   playVideo(url: string): void {
     this.getMraidBridge()?.playVideo(url);
+  }
+
+  resize(
+    width: number,
+    height: number,
+    offsetX: number,
+    offsetY: number,
+    customClosePosition: ClosePosition,
+    allowOffscreen: boolean
+  ): void {
+    this.getMraidBridge()?.resize(
+      width,
+      height,
+      offsetX,
+      offsetY,
+      customClosePosition,
+      allowOffscreen
+    );
   }
 
   private getMraidBridge(): CriteoInterface | undefined | null {

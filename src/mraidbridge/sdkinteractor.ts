@@ -1,5 +1,7 @@
 import { MraidBridge } from "./mraidbridge";
 import { LogLevel } from "../log/loglevel";
+import { Anything } from "../utils";
+import { ClosePosition } from "../resize";
 
 /**
  * Composite which delegates calls to native platforms handlers
@@ -38,6 +40,26 @@ export class SdkInteractor {
   playVideo(url: string) {
     this.callForAll((bridge) => {
       bridge.playVideo(url);
+    });
+  }
+
+  resize(
+    width: number,
+    height: number,
+    offsetX: number,
+    offsetY: number,
+    customClosePosition: ClosePosition,
+    allowOffscreen: boolean
+  ) {
+    this.callForAll((bridge) => {
+      bridge.resize(
+        width,
+        height,
+        offsetX,
+        offsetY,
+        customClosePosition,
+        allowOffscreen
+      );
     });
   }
 

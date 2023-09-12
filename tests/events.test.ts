@@ -113,6 +113,29 @@ describe("when addEventListener", () => {
     expect(capturedIsViewable).toBe(isViewable);
   });
 
+  test("for sizeChange event and fireSizeChangeEvent should trigger listener", () => {
+    let triggerCount = 0;
+
+    let capturedWidth = 0;
+    let capturedHeight = 0;
+    const listener = (width: number, height: number) => {
+      triggerCount += 1;
+      capturedWidth = width;
+      capturedHeight = height;
+    };
+
+    eventsCoordinator.addEventListener(
+      MraidEvent.SizeChange,
+      listener,
+      logger.log
+    );
+    eventsCoordinator.fireSizeChangeEvent(100, 150);
+
+    expect(triggerCount).toBe(1);
+    expect(capturedWidth).toBe(100);
+    expect(capturedHeight).toBe(150);
+  });
+
   test("for ready event with multiple listeners should trigger multiple listeners", () => {
     let triggerCount1 = 0;
     let triggerCount2 = 0;

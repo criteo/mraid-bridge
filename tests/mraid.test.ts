@@ -5,6 +5,7 @@ import {
   instance,
   mock,
   verify,
+  when,
 } from "ts-mockito";
 import { MRAIDImplementation } from "../src/mraid";
 import { EventsCoordinator, MraidEvent } from "../src/events";
@@ -14,20 +15,22 @@ import { SdkInteractor } from "../src/mraidbridge/sdkinteractor";
 import { LogLevel } from "../src/log/loglevel";
 import { defaultPropertiesValue, ExpandProperties } from "../src/expand";
 import { Logger } from "../src/log/logger";
-import {} from "../src/mraidwindow";
 import { SdkFeature } from "../src/sdkfeature";
 import { initialPosition, Position } from "../src/position";
+import { ClosePosition, ResizePropertiesValidator } from "../src/resize";
 
 let mraid: MRAIDImplementation;
 let eventsCoordinator: EventsCoordinator;
 let sdkInteractor: SdkInteractor;
 let logger: Logger;
 let contentWindow: Window;
+let resizePropertiesValidator: ResizePropertiesValidator;
 
 beforeEach(() => {
   eventsCoordinator = mock(EventsCoordinator);
   sdkInteractor = mock(SdkInteractor);
   logger = mock(Logger);
+  resizePropertiesValidator = mock(ResizePropertiesValidator);
 
   const frame = document.createElement("iframe");
   document.body.appendChild(frame);
@@ -36,7 +39,8 @@ beforeEach(() => {
   mraid = new MRAIDImplementation(
     instance(eventsCoordinator),
     instance(sdkInteractor),
-    instance(logger)
+    instance(logger),
+    instance(resizePropertiesValidator)
   );
 });
 
@@ -53,7 +57,8 @@ test("when create mraid object in sub window main window should have the same in
   contentWindow.mraid = new MRAIDImplementation(
     instance(eventsCoordinator),
     instance(sdkInteractor),
-    instance(logger)
+    instance(logger),
+    instance(resizePropertiesValidator)
   );
   expect(window.mraid).toBe(contentWindow.mraid);
 });
@@ -318,6 +323,15 @@ describe("when notifyExpanded", () => {
     expect(mraid.getState()).toBe(MraidState.Expanded);
   });
 
+  test("current state is resized then should change state to expanded", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+    mraid.notifyResized();
+
+    mraid.notifyExpanded();
+
+    expect(mraid.getState()).toBe(MraidState.Expanded);
+  });
+
   test("current state is expanded then should log warning", () => {
     mraid.notifyReady(MraidPlacementType.Inline);
     mraid.notifyExpanded();
@@ -374,6 +388,15 @@ describe("when notifyClosed()", () => {
     mraid.notifyClosed();
 
     expect(mraid.getState()).toBe(MraidState.Hidden);
+  });
+
+  test("current state is resized then should change state to default", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+    mraid.notifyResized();
+
+    mraid.notifyClosed();
+
+    expect(mraid.getState()).toBe(MraidState.Default);
   });
 });
 
@@ -510,6 +533,19 @@ describe("when getCurrentPosition", () => {
   });
 });
 
+test("when setCurrentPosition one time should not trigger size change event", () => {
+  mraid.setCurrentPosition(0, 0, 100, 100);
+
+  verify(eventsCoordinator.fireSizeChangeEvent(100, 100)).never();
+});
+
+test("when setCurrentPositon two times should trigger size chnage event once", () => {
+  mraid.setCurrentPosition(0, 0, 100, 100);
+  mraid.setCurrentPosition(0, 0, 200, 200);
+
+  verify(eventsCoordinator.fireSizeChangeEvent(200, 200)).once();
+});
+
 describe("when getDefaultPosition", () => {
   test("should return initial position", () => {
     expect(mraid.getDefaultPosition()).toEqual(initialPosition);
@@ -570,4 +606,282 @@ describe("when playVideo", () => {
       verify(logger.log(LogLevel.Error, "playVideo", anyString())).once();
     }
   );
+});
+
+describe("when setResizeProperties", () => {
+  test("given validator returns error should log error", () => {
+    when(
+      resizePropertiesValidator.validate(anything(), anything(), anything())
+    ).thenReturn("Error message");
+
+    mraid.setResizeProperties({
+      width: 100,
+      height: 100,
+      offsetY: 2,
+      offsetX: 3,
+    });
+
+    verify(
+      logger.log(LogLevel.Error, "setResizeProperties", "Error message")
+    ).once();
+  });
+
+  test("given validator returns no error should set resize properties", () => {
+    const setResizeProperties = {
+      width: 100,
+      height: 100,
+      offsetY: 2,
+      offsetX: 3,
+      customClosePosition: "center",
+      allowOffscreen: true,
+    };
+
+    mraid.setResizeProperties(setResizeProperties);
+
+    const resizeProperties = mraid.getResizeProperties();
+
+    expect(resizeProperties).toEqual(setResizeProperties);
+  });
+});
+
+test("getResizeProperties given setResizeProperties never called should return undefined", () => {
+  const resizeProperties = mraid.getResizeProperties();
+
+  expect(resizeProperties).toBe(undefined);
+});
+
+describe("when resize", () => {
+  test("given current state is loading should log error", () => {
+    mraid.resize();
+    verify(
+      logger.log(LogLevel.Error, "resize", "Can't resize in loading state")
+    ).once();
+  });
+
+  test("given current state is hidden should log error", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+    mraid.notifyClosed();
+
+    mraid.resize();
+
+    verify(
+      logger.log(LogLevel.Error, "resize", "Can't resize in hidden state")
+    ).once();
+    verify(
+      sdkInteractor.resize(
+        anything(),
+        anything(),
+        anything(),
+        anything(),
+        anything(),
+        anything()
+      )
+    ).never();
+  });
+
+  test("given current state is expanded should log error", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+    mraid.notifyExpanded();
+
+    mraid.resize();
+
+    verify(
+      logger.log(LogLevel.Error, "resize", "Can't resize in expanded state")
+    ).once();
+    verify(
+      sdkInteractor.resize(
+        anything(),
+        anything(),
+        anything(),
+        anything(),
+        anything(),
+        anything()
+      )
+    ).never();
+  });
+
+  test("given placement type is interstitial should log error", () => {
+    mraid.notifyReady(MraidPlacementType.Interstitial);
+
+    mraid.resize();
+
+    verify(
+      logger.log(
+        LogLevel.Error,
+        "resize",
+        "Resize is only available for inline placement"
+      )
+    ).once();
+    verify(
+      sdkInteractor.resize(
+        anything(),
+        anything(),
+        anything(),
+        anything(),
+        anything(),
+        anything()
+      )
+    ).never();
+  });
+
+  test("given resize properties never set should log error", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+
+    mraid.resize();
+
+    verify(
+      logger.log(
+        LogLevel.Error,
+        "resize",
+        "You must set resize properties before calling resize"
+      )
+    ).once();
+    verify(
+      sdkInteractor.resize(
+        anything(),
+        anything(),
+        anything(),
+        anything(),
+        anything(),
+        anything()
+      )
+    ).never();
+  });
+
+  test("given resize properties set, current position changes and resize properties become invalid should trigger error", () => {
+    mraid.setMaxSize(500, 500, 1);
+    mraid.setCurrentPosition(0, 0, 300, 300);
+    mraid.notifyReady(MraidPlacementType.Inline);
+
+    mraid.setResizeProperties({
+      width: 350,
+      height: 350,
+      offsetX: 0,
+      offsetY: 0,
+    });
+
+    when(
+      resizePropertiesValidator.validate(anything(), anything(), anything())
+    ).thenReturn("Error message");
+
+    mraid.resize();
+
+    verify(logger.log(LogLevel.Error, "resize", "Error message")).once();
+    verify(
+      sdkInteractor.resize(
+        anything(),
+        anything(),
+        anything(),
+        anything(),
+        anything(),
+        anything()
+      )
+    ).never();
+  });
+
+  test("given valid properties and default state should call sdk interactor", () => {
+    mraid.setMaxSize(500, 500, 1);
+    mraid.setCurrentPosition(0, 0, 300, 300);
+    mraid.notifyReady(MraidPlacementType.Inline);
+
+    mraid.setResizeProperties({
+      width: 350,
+      height: 350,
+      offsetX: 0,
+      offsetY: 0,
+      customClosePosition: "center",
+      allowOffscreen: true,
+    });
+
+    mraid.resize();
+
+    verify(
+      sdkInteractor.resize(350, 350, 0, 0, ClosePosition.Center, true)
+    ).once();
+  });
+
+  test("given valid properties and default state then resize from resized state should call sdk interactor twice", () => {
+    mraid.setMaxSize(500, 500, 1);
+    mraid.setCurrentPosition(0, 0, 300, 300);
+    mraid.notifyReady(MraidPlacementType.Inline);
+
+    mraid.setResizeProperties({
+      width: 350,
+      height: 350,
+      offsetX: 0,
+      offsetY: 0,
+      customClosePosition: "center",
+      allowOffscreen: true,
+    });
+
+    mraid.resize();
+    mraid.resize();
+
+    verify(
+      sdkInteractor.resize(350, 350, 0, 0, ClosePosition.Center, true)
+    ).twice();
+  });
+});
+
+describe("when notifyResized", () => {
+  test("given current state is default should update state and fire event", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+
+    mraid.notifyResized();
+
+    expect(mraid.getState()).toBe(MraidState.Resized);
+    verify(eventsCoordinator.fireStateChangeEvent(MraidState.Resized)).once();
+  });
+
+  test("given current state is resized should keep state and fire event", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+    mraid.notifyResized();
+
+    mraid.notifyResized();
+
+    expect(mraid.getState()).toBe(MraidState.Resized);
+    verify(eventsCoordinator.fireStateChangeEvent(MraidState.Resized)).twice();
+  });
+
+  test("given current state is default should log warning", () => {
+    mraid.notifyResized();
+
+    verify(
+      logger.log(
+        LogLevel.Warning,
+        "notifyResized",
+        "Can't resize from loading state"
+      )
+    ).once();
+  });
+
+  test("given current state is hidden should log warning", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+    mraid.notifyClosed();
+
+    mraid.notifyResized();
+
+    verify(
+      logger.log(
+        LogLevel.Warning,
+        "notifyResized",
+        "Can't resize from hidden state"
+      )
+    ).once();
+  });
+
+  test("given current state is expanded should log warning", () => {
+    mraid.notifyReady(MraidPlacementType.Inline);
+    mraid.notifyExpanded();
+
+    mraid.notifyResized();
+
+    verify(
+      logger.log(
+        LogLevel.Warning,
+        "notifyResized",
+        "Can't resize from expanded state"
+      )
+    ).once();
+  });
 });

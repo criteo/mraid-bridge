@@ -4,6 +4,7 @@ import {
   AndroidMraidBridge,
 } from "../../src/mraidbridge/androidmraidbridge";
 import { LogLevel } from "../../src/log/loglevel";
+import { ClosePosition } from "../../src/resize";
 
 let androidMraidBridge: AndroidMraidBridge;
 let androidBridge: CriteoInterface;
@@ -51,4 +52,33 @@ test("when call playVideo should delegate to criteoMraidBridge on window", () =>
   androidMraidBridge.playVideo(url);
 
   verify(androidBridge.playVideo(url)).once();
+});
+
+test("when call resize should delegate to criteoMraidBridge on window", () => {
+  const width = 133;
+  const height = 444;
+  const offsetX = 13;
+  const offsetY = 0;
+  const customClosePosition = ClosePosition.Center;
+  const allowOffscreen = true;
+
+  androidMraidBridge.resize(
+    width,
+    height,
+    offsetX,
+    offsetY,
+    customClosePosition,
+    allowOffscreen
+  );
+
+  verify(
+    androidBridge.resize(
+      width,
+      height,
+      offsetX,
+      offsetY,
+      customClosePosition,
+      allowOffscreen
+    )
+  ).once();
 });

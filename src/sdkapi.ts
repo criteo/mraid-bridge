@@ -81,4 +81,9 @@ export interface SDKApi {
    * @param height - current height of container in density-independent pixels
    */
   setCurrentPosition(x: number, y: number, width: number, height: number): void;
+
+  /**
+   * Report mraid object about successful resize
+   */
+  notifyResized(): void;
 }

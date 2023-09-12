@@ -5,6 +5,7 @@ import { ExpandProperties } from "./expand";
 import { Size } from "./size";
 import { SdkFeature } from "./sdkfeature";
 import { Position } from "./position";
+import { ResizeProperties } from "./resize";
 
 export interface MRAIDApi {
   /**
@@ -183,4 +184,21 @@ export interface MRAIDApi {
    * @param url - the URI of the video or video stream
    */
   playVideo(url: Url | Anything): void;
+
+  /**
+   * The resize method will cause the existing web view to change size using the existing HTML
+   * document
+   */
+  resize(): void;
+
+  /**
+   * @returns current ResizeProperties object
+   */
+  getResizeProperties(): ResizeProperties | undefined;
+
+  /**
+   * Sets resize properties object
+   * @param resizeProperties
+   */
+  setResizeProperties(resizeProperties: ResizeProperties | Anything): void;
 }

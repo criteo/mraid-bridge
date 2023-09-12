@@ -3,4 +3,5 @@ export enum MraidState {
   Default = "default",
   Expanded = "expanded",
   Hidden = "hidden",
+  Resized = "resized",
 }

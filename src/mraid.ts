@@ -21,6 +21,7 @@ import {
   SupportedSdkFeatures,
 } from "./sdkfeature";
 import { initialPosition, Position } from "./position";
+import { ResizeProperties, ResizePropertiesValidator } from "./resize";
 
 export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private eventsCoordinator: EventsCoordinator;
@@ -28,6 +29,8 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private sdkInteractor: SdkInteractor;
 
   private logger: Logger;
+
+  private resizePropertiesValidator: ResizePropertiesValidator;
 
   private currentState = MraidState.Loading;
 
@@ -52,14 +55,18 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
 
   private currentPosition = initialPosition.clone();
 
+  private currentResizeProperties?: ResizeProperties = undefined;
+
   constructor(
     eventsCoordinator: EventsCoordinator,
     sdkInteractor: SdkInteractor,
-    logger: Logger
+    logger: Logger,
+    resizePropertiesValidator: ResizePropertiesValidator
   ) {
     this.eventsCoordinator = eventsCoordinator;
     this.sdkInteractor = sdkInteractor;
     this.logger = logger;
+    this.resizePropertiesValidator = resizePropertiesValidator;
 
     this.spreadMraidInstance();
   }
@@ -271,6 +278,90 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
     }
   }
 
+  getResizeProperties(): ResizeProperties | undefined {
+    return this.currentResizeProperties?.copy();
+  }
+
+  resize(): void {
+    if (
+      this.currentState !== MraidState.Resized &&
+      this.currentState !== MraidState.Default
+    ) {
+      this.logger.log(
+        LogLevel.Error,
+        "resize",
+        `Can't resize in ${this.currentState} state`
+      );
+      return;
+    }
+
+    if (this.placementType !== MraidPlacementType.Inline) {
+      this.logger.log(
+        LogLevel.Error,
+        "resize",
+        "Resize is only available for inline placement"
+      );
+      return;
+    }
+
+    if (!this.currentResizeProperties) {
+      this.logger.log(
+        LogLevel.Error,
+        "resize",
+        "You must set resize properties before calling resize"
+      );
+    } else {
+      // validate resize properties one more time because position and max size
+      // might have changed by this time
+      const errorMessage = this.resizePropertiesValidator.validate(
+        this.currentResizeProperties,
+        this.currentMaxSize,
+        this.currentPosition
+      );
+      if (errorMessage) {
+        this.logger.log(LogLevel.Error, "resize", errorMessage);
+        return;
+      }
+
+      const {
+        offsetY,
+        height,
+        offsetX,
+        width,
+        customClosePosition,
+        allowOffscreen,
+      } = this.currentResizeProperties;
+      this.sdkInteractor.resize(
+        width,
+        height,
+        offsetX,
+        offsetY,
+        customClosePosition,
+        allowOffscreen
+      );
+    }
+  }
+
+  setResizeProperties(resizeProperties: ResizeProperties | Anything): void {
+    const errorMessage = this.resizePropertiesValidator.validate(
+      resizeProperties,
+      this.currentMaxSize,
+      this.currentPosition
+    );
+    if (errorMessage) {
+      this.logger.log(LogLevel.Error, "setResizeProperties", errorMessage);
+    } else {
+      this.currentResizeProperties = new ResizeProperties(
+        resizeProperties.width,
+        resizeProperties.height,
+        resizeProperties.offsetX,
+        resizeProperties.offsetY,
+        resizeProperties.customClosePosition,
+        resizeProperties.allowOffscreen
+      );
+    }
+  }
+
   // #endregion
 
   // #region SDKApi
@@ -321,7 +412,10 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
       );
       return;
     }
-    if (this.currentState === MraidState.Expanded) {
+    if (
+      this.currentState === MraidState.Expanded ||
+      this.currentState === MraidState.Resized
+    ) {
       this.updateState(MraidState.Default);
     } else if (this.currentState === MraidState.Default) {
       this.updateState(MraidState.Hidden);
@@ -331,6 +425,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   notifyExpanded(): void {
     switch (this.currentState) {
       case MraidState.Default:
+      case MraidState.Resized:
         this.updateState(MraidState.Expanded);
         break;
       case MraidState.Expanded:
@@ -371,8 +466,27 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
       JSON.stringify(this.defaultPosition) === JSON.stringify(initialPosition)
     ) {
       this.defaultPosition = newPosition;
+    } else {
+      this.eventsCoordinator.fireSizeChangeEvent(width, height);
     }
     this.currentPosition = newPosition;
+  }
+
+  notifyResized(): void {
+    switch (this.currentState) {
+      case MraidState.Default:
+      case MraidState.Resized: {
+        this.updateState(MraidState.Resized);
+        break;
+      }
+      default:
+        this.logger.log(
+          LogLevel.Warning,
+          "notifyResized",
+          `Can't resize from ${this.currentState} state`
+        );
+        break;
+    }
   }
 
   // #endregion

@@ -1,5 +1,6 @@
 import { MraidBridge } from "./mraidbridge";
 import { LogLevel } from "../log/loglevel";
+import { ClosePosition } from "../resize";
 
 // #region MessageHandler
 
@@ -50,6 +51,15 @@ export declare interface PlayVideoIosMessage extends IosMessage {
   url: string;
 }
 
+export declare interface ResizeIosMessage extends IosMessage {
+  width: number;
+  height: number;
+  offsetX: number;
+  offsetY: number;
+  customClosePosition: string;
+  allowOffscreen: boolean;
+}
+
 // #endregion
 
 export class IosMraidBridge implements MraidBridge {
@@ -93,6 +103,26 @@ export class IosMraidBridge implements MraidBridge {
       url,
     };
     this.postMessage(playVideoMessage);
+  }
+
+  resize(
+    width: number,
+    height: number,
+    offsetX: number,
+    offsetY: number,
+    customClosePosition: ClosePosition,
+    allowOffscreen: boolean
+  ): void {
+    const resizeMessage: ResizeIosMessage = {
+      action: "resize",
+      width,
+      height,
+      offsetX,
+      offsetY,
+      customClosePosition,
+      allowOffscreen,
+    };
+    this.postMessage(resizeMessage);
   }
 
   private postMessage(message: IosMessage) {
