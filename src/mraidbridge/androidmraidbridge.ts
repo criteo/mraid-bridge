@@ -1,6 +1,7 @@
 import { MraidBridge } from "./mraidbridge";
 import { LogLevel } from "../log/loglevel";
 import { ClosePosition } from "../resize";
+import { Orientation } from "../orientationproperties";
 
 /**
  * Interaction object is defined in global scope (window) so we are using
@@ -36,6 +37,10 @@ export declare interface CriteoInterface {
     offsetY: number,
     customClosePosition: string,
     allowOffscreen: boolean
+  ): void;
+  setOrientationProperties(
+    allowOrientationChange: boolean,
+    forceOrientation: string
   ): void;
 }
 
@@ -75,6 +80,16 @@ export class AndroidMraidBridge implements MraidBridge {
       offsetY,
       customClosePosition,
       allowOffscreen
+    );
+  }
+
+  setOrientationProperties(
+    allowOrientationChange: boolean,
+    forceOrientation: Orientation
+  ): void {
+    this.getMraidBridge()?.setOrientationProperties(
+      allowOrientationChange,
+      forceOrientation
     );
   }
 

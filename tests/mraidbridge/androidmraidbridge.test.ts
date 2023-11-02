@@ -1,10 +1,14 @@
 import { instance, mock, verify } from "ts-mockito";
 import {
-  CriteoInterface,
   AndroidMraidBridge,
+  CriteoInterface,
 } from "../../src/mraidbridge/androidmraidbridge";
 import { LogLevel } from "../../src/log/loglevel";
 import { ClosePosition } from "../../src/resize";
+import {
+  Orientation,
+  OrientationProperties,
+} from "../../src/orientationproperties";
 
 let androidMraidBridge: AndroidMraidBridge;
 let androidBridge: CriteoInterface;
@@ -80,5 +84,13 @@ test("when call resize should delegate to criteoMraidBridge on window", () => {
       customClosePosition,
       allowOffscreen
     )
+  ).once();
+});
+
+test("when call setOrientationProperties should delegate to criteoMraidBridge on window", () => {
+  androidMraidBridge.setOrientationProperties(false, Orientation.Landscape);
+
+  verify(
+    androidBridge.setOrientationProperties(false, Orientation.Landscape)
   ).once();
 });

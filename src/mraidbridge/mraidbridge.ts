@@ -1,5 +1,6 @@
 import { LogLevel } from "../log/loglevel";
 import { ClosePosition } from "../resize";
+import { Orientation } from "../orientationproperties";
 
 /**
  * Defines API for interaction with native platforms (iOS and Android)
@@ -18,5 +19,9 @@ export interface MraidBridge {
     offsetY: number,
     customClosePosition: ClosePosition,
     allowOffscreen: boolean
+  ): void;
+  setOrientationProperties(
+    allowOrientationChange: boolean,
+    forceOrientation: Orientation
   ): void;
 }

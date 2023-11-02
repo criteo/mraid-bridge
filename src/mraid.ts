@@ -22,6 +22,12 @@ import {
 } from "./sdkfeature";
 import { initialPosition, Position } from "./position";
 import { ResizeProperties, ResizePropertiesValidator } from "./resize";
+import {
+  defaultOrientationProperties,
+  Orientation,
+  OrientationProperties,
+  validateOrientationProperties,
+} from "./orientationproperties";
 
 export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private eventsCoordinator: EventsCoordinator;
@@ -56,6 +62,8 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   private currentPosition = initialPosition.clone();
 
   private currentResizeProperties?: ResizeProperties = undefined;
+
+  private currentOrientationProperties = defaultOrientationProperties.clone();
 
   constructor(
     eventsCoordinator: EventsCoordinator,
@@ -358,6 +366,31 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
         resizeProperties.offsetY,
         resizeProperties.customClosePosition,
         resizeProperties.allowOffscreen
+      );
+    }
+  }
+
+  getOrientationProperties(): OrientationProperties {
+    return this.currentOrientationProperties.clone();
+  }
+
+  setOrientationProperties(
+    orientationProperties: OrientationProperties | Anything
+  ): void {
+    const errorMessage = validateOrientationProperties(orientationProperties);
+    if (errorMessage) {
+      this.logger.log(LogLevel.Error, "setOrientationProperties", errorMessage);
+    } else {
+      this.currentOrientationProperties.forceOrientation =
+        orientationProperties.forceOrientation ??
+        defaultOrientationProperties.forceOrientation;
+      this.currentOrientationProperties.allowOrientationChange =
+        orientationProperties.allowOrientationChange ??
+        defaultOrientationProperties.allowOrientationChange;
+
+      this.sdkInteractor.setOrientationProperties(
+        this.currentOrientationProperties.allowOrientationChange,
+        this.currentOrientationProperties.forceOrientation
       );
     }
   }

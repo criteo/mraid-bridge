@@ -18,6 +18,10 @@ import { Logger } from "../src/log/logger";
 import { SdkFeature } from "../src/sdkfeature";
 import { initialPosition, Position } from "../src/position";
 import { ClosePosition, ResizePropertiesValidator } from "../src/resize";
+import {
+  defaultOrientationProperties,
+  Orientation,
+} from "../src/orientationproperties";
 
 let mraid: MRAIDImplementation;
 let eventsCoordinator: EventsCoordinator;
@@ -884,4 +888,160 @@ describe("when notifyResized", () => {
       )
     ).once();
   });
+});
+
+describe("when setOrientationProperties", () => {
+  test("given undefined orientation properties should log proper error message", () => {
+    mraid.setOrientationProperties(undefined);
+    verify(
+      logger.log(
+        LogLevel.Error,
+        "setOrientationProperties",
+        "Orientation properties object is not passed"
+      )
+    ).once();
+    verify(
+      sdkInteractor.setOrientationProperties(anything(), anything())
+    ).never();
+  });
+
+  test("given null orientation properties should log proper error message", () => {
+    mraid.setOrientationProperties(null);
+    verify(
+      logger.log(
+        LogLevel.Error,
+        "setOrientationProperties",
+        "Orientation properties object is not passed"
+      )
+    ).once();
+    verify(
+      sdkInteractor.setOrientationProperties(anything(), anything())
+    ).never();
+  });
+
+  test("given empty orientation properties should log proper error message", () => {
+    mraid.setOrientationProperties({});
+    verify(
+      logger.log(
+        LogLevel.Error,
+        "setOrientationProperties",
+        "Orientation properties object is empty"
+      )
+    ).once();
+    verify(
+      sdkInteractor.setOrientationProperties(anything(), anything())
+    ).never();
+  });
+
+  test("given orientation properties with wrong fields should log proper error message", () => {
+    mraid.setOrientationProperties({ customProp: true });
+    verify(
+      logger.log(
+        LogLevel.Error,
+        "setOrientationProperties",
+        "The orientation properties object does not contain the 'allowOrientationChange' or 'forceOrientation' properties"
+      )
+    ).once();
+    verify(
+      sdkInteractor.setOrientationProperties(anything(), anything())
+    ).never();
+  });
+
+  it.each([Infinity, "123", new Set(), 123])(
+    "given %p allowOrientationChange should log proper error message",
+    (param) => {
+      mraid.setOrientationProperties({ allowOrientationChange: param });
+
+      verify(
+        logger.log(
+          LogLevel.Error,
+          "setOrientationProperties",
+          "'allowOrientationChange' should be boolean"
+        )
+      ).once();
+      verify(
+        sdkInteractor.setOrientationProperties(anything(), anything())
+      ).never();
+    }
+  );
+
+  it.each([Infinity, "123", new Set(), 123])(
+    "given %p forceOrientation should log proper error message",
+    (param) => {
+      mraid.setOrientationProperties({ forceOrientation: param });
+
+      verify(
+        logger.log(
+          LogLevel.Error,
+          "setOrientationProperties",
+          "'forceOrientation' should be one of [portrait, landscape, none]"
+        )
+      ).once();
+      verify(
+        sdkInteractor.setOrientationProperties(anything(), anything())
+      ).never();
+    }
+  );
+
+  it.each([true, false])(
+    "given %p allowOrientationChange should return same value when getOrientationProperties",
+    (param) => {
+      mraid.setOrientationProperties({ allowOrientationChange: param });
+
+      const orientationProperties = mraid.getOrientationProperties();
+      expect(orientationProperties.allowOrientationChange).toBe(param);
+      expect(orientationProperties.forceOrientation).toBe(
+        defaultOrientationProperties.forceOrientation
+      );
+      verify(
+        sdkInteractor.setOrientationProperties(
+          orientationProperties.allowOrientationChange,
+          orientationProperties.forceOrientation
+        )
+      ).once();
+    }
+  );
+
+  it.each([Orientation.Landscape, Orientation.Portrait, Orientation.None])(
+    "given %p forceOrientation should return same value when getOrientationProperties",
+    (param) => {
+      mraid.setOrientationProperties({ forceOrientation: param });
+
+      const orientationProperties = mraid.getOrientationProperties();
+      expect(orientationProperties.forceOrientation).toBe(param);
+      expect(orientationProperties.allowOrientationChange).toBe(
+        defaultOrientationProperties.allowOrientationChange
+      );
+      verify(
+        sdkInteractor.setOrientationProperties(
+          orientationProperties.allowOrientationChange,
+          orientationProperties.forceOrientation
+        )
+      ).once();
+    }
+  );
+
+  test("given both properties are set should return same values", () => {
+    mraid.setOrientationProperties({
+      allowOrientationChange: false,
+      forceOrientation: "portrait",
+    });
+
+    const orientationProperties = mraid.getOrientationProperties();
+    expect(orientationProperties.allowOrientationChange).toBe(false);
+    expect(orientationProperties.forceOrientation).toBe(Orientation.Portrait);
+    verify(
+      sdkInteractor.setOrientationProperties(
+        orientationProperties.allowOrientationChange,
+        orientationProperties.forceOrientation
+      )
+    ).once();
+  });
+});
+
+test("when getOrientationProperties should return proper default values", () => {
+  const orientationProperties = mraid.getOrientationProperties();
+
+  expect(orientationProperties.allowOrientationChange).toBe(true);
+  expect(orientationProperties.forceOrientation).toBe(Orientation.None);
 });
