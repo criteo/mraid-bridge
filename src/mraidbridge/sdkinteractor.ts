@@ -2,6 +2,7 @@ import { MraidBridge } from "./mraidbridge";
 import { LogLevel } from "../log/loglevel";
 import { Anything } from "../utils";
 import { ClosePosition } from "../resize";
+import { Orientation } from "../orientationproperties";
 
 /**
  * Composite which delegates calls to native platforms handlers
@@ -60,6 +61,15 @@ export class SdkInteractor {
         customClosePosition,
         allowOffscreen
       );
+    });
+  }
+
+  setOrientationProperties(
+    allowOrientationChange: boolean,
+    forceOrientation: Orientation
+  ) {
+    this.callForAll((bridge) => {
+      bridge.setOrientationProperties(allowOrientationChange, forceOrientation);
     });
   }
 

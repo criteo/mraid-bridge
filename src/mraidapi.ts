@@ -6,6 +6,7 @@ import { Size } from "./size";
 import { SdkFeature } from "./sdkfeature";
 import { Position } from "./position";
 import { ResizeProperties } from "./resize";
+import { OrientationProperties } from "./orientationproperties";
 
 export interface MRAIDApi {
   /**
@@ -201,4 +202,19 @@ export interface MRAIDApi {
    * @param resizeProperties
    */
   setResizeProperties(resizeProperties: ResizeProperties | Anything): void;
+
+  /**
+   * @returns current OrientationProperties object
+   * If {@link setOrientationProperties} is never called then this method
+   * returns default values for properties
+   */
+  getOrientationProperties(): OrientationProperties;
+
+  /**
+   * Sets OrientationProperties object
+   * @param orientationProperties
+   */
+  setOrientationProperties(
+    orientationProperties: OrientationProperties | Anything
+  ): void;
 }

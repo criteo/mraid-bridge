@@ -3,6 +3,7 @@ import { SdkInteractor } from "../../src/mraidbridge/sdkinteractor";
 import { MraidBridge } from "../../src/mraidbridge/mraidbridge";
 import { LogLevel } from "../../src/log/loglevel";
 import { ClosePosition } from "../../src/resize";
+import { Orientation } from "../../src/orientationproperties";
 
 let sdkInteractor: SdkInteractor;
 let mraidBridges: MraidBridge[];
@@ -83,5 +84,13 @@ test("when call resize should delegate to every MraidBridge object", () => {
         allowOffscreen
       )
     ).once()
+  );
+});
+
+test("when call setOrientationProperties should delegate to every MraidBridge object", () => {
+  sdkInteractor.setOrientationProperties(false, Orientation.Portrait);
+
+  mraidBridges.forEach((bridge) =>
+    verify(bridge.setOrientationProperties(false, Orientation.Portrait)).once()
   );
 });

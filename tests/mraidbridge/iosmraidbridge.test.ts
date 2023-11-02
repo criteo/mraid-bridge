@@ -11,9 +11,11 @@ import {
   OpenIosMessage,
   PlayVideoIosMessage,
   ResizeIosMessage,
+  SetOrientationPropertiesMessage,
   Webkit,
 } from "../../src/mraidbridge/iosmraidbridge";
 import { ClosePosition } from "../../src/resize";
+import { Orientation } from "../../src/orientationproperties";
 
 let iosMraidBridge: IosMraidBridge;
 let iosMessageHandler: CriteoMessageHandler;
@@ -134,6 +136,25 @@ test("when call resize should delegate to criteoMraidBridge on window", () => {
     offsetY,
     ClosePosition.Center,
     allowOffscreen
+  );
+
+  const capturedMessage = captureLastMessage();
+  expect(capturedMessage).toStrictEqual(expectedMessage);
+});
+
+test("when call setOrientationProperties should delegate to criteoMraidBridge on window", () => {
+  const allowOrientationChange = false;
+  const forceOrientation = Orientation.None;
+
+  const expectedMessage: SetOrientationPropertiesMessage = {
+    action: "set_orientation_properties",
+    allowOrientationChange,
+    forceOrientation,
+  };
+
+  iosMraidBridge.setOrientationProperties(
+    allowOrientationChange,
+    forceOrientation
   );
 
   const capturedMessage = captureLastMessage();

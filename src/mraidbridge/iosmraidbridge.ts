@@ -1,6 +1,7 @@
 import { MraidBridge } from "./mraidbridge";
 import { LogLevel } from "../log/loglevel";
 import { ClosePosition } from "../resize";
+import { Orientation } from "../orientationproperties";
 
 // #region MessageHandler
 
@@ -58,6 +59,11 @@ export declare interface ResizeIosMessage extends IosMessage {
   offsetY: number;
   customClosePosition: string;
   allowOffscreen: boolean;
+}
+
+export declare interface SetOrientationPropertiesMessage extends IosMessage {
+  allowOrientationChange: boolean;
+  forceOrientation: string;
 }
 
 // #endregion
@@ -123,6 +129,18 @@ export class IosMraidBridge implements MraidBridge {
       allowOffscreen,
     };
     this.postMessage(resizeMessage);
+  }
+
+  setOrientationProperties(
+    allowOrientationChange: boolean,
+    forceOrientation: Orientation
+  ): void {
+    const orientationPropertiesMessage: SetOrientationPropertiesMessage = {
+      action: "set_orientation_properties",
+      allowOrientationChange,
+      forceOrientation,
+    };
+    this.postMessage(orientationPropertiesMessage);
   }
 
   private postMessage(message: IosMessage) {
