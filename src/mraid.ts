@@ -351,6 +351,7 @@ export class MRAIDImplementation implements MRAIDApi, SDKApi {
   }
 
   setResizeProperties(resizeProperties: ResizeProperties | Anything): void {
+    this.currentResizeProperties = undefined;
     const errorMessage = this.resizePropertiesValidator.validate(
       resizeProperties,
       this.currentMaxSize,

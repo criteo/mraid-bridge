@@ -646,6 +646,25 @@ describe("when setResizeProperties", () => {
 
     expect(resizeProperties).toEqual(setResizeProperties);
   });
+
+  test("given validator returns no error and then validator returns error should return undefined resize properties", () => {
+    const setResizeProperties = {
+      width: 100,
+      height: 100,
+      offsetY: 2,
+      offsetX: 3,
+      customClosePosition: "center",
+      allowOffscreen: true,
+    };
+
+    mraid.setResizeProperties(setResizeProperties);
+    when(
+      resizePropertiesValidator.validate(anything(), anything(), anything())
+    ).thenReturn("Error message");
+    mraid.setResizeProperties(setResizeProperties);
+
+    expect(mraid.getResizeProperties()).toBe(undefined);
+  });
 });
 
 test("getResizeProperties given setResizeProperties never called should return undefined", () => {
