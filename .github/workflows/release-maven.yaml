@@ -3,6 +3,7 @@ name: Release on Maven
 on:
   release:
     types: [published]
+  workflow_dispatch:
 
 jobs:
   publish-release-to-sonatype:
